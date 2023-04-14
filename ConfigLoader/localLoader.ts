@@ -10,7 +10,6 @@ async function findConfigFile<T>(
   const dir = configDir;
   const files = await Deno.readDir(configDir);
   for await (const file of files) {
-    console.log(file);
     if (file.name.includes('Config.ts')) {
       const { default: configModule } = await import(
         `${configDir}/${file.name}`
