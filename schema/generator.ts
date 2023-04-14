@@ -63,6 +63,7 @@ export async function generateSchema(
   try {
     fileData = await Deno.readTextFile(filePath);
   } catch (error) {
+    // file does not exist, create it and add import statement
     await Deno.writeTextFile(
       filePath,
       `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${code}`,

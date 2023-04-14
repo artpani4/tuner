@@ -5,7 +5,7 @@
     }
   },
   "tasks": {
-    "start": "deno run --allow-all src/notion.ts"
+    "start": "deno run --allow-all src/index.ts"
   },
   "lint": {
     "files": {
