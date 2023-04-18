@@ -1,6 +1,6 @@
 import { z, ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
 
-type ConfigMatcher<T> = (config: T) => boolean;
+export type ConfigMatcher<T> = (config: T) => boolean;
 
 async function findConfigFile<T>(
   configDir: string,
@@ -10,7 +10,7 @@ async function findConfigFile<T>(
   const dir = configDir;
   const files = await Deno.readDir(configDir);
   for await (const file of files) {
-    if (file.name.includes('Config.ts')) {
+    if (file.name.includes('Config')) {
       const { default: configModule } = await import(
         `${configDir}/${file.name}`
       );

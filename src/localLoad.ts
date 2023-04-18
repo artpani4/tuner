@@ -11,4 +11,4 @@ const config = await loadConfig<BotConfig>(
 
 // BOT_ENV=LOCAL deno run --allow-read --allow-env src/index.ts
 
-console.log(config);
+console.log(config?.database.password);

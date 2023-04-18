@@ -9,7 +9,7 @@ const localBotConfig = {
   database: {
     host: 'trololo',
     port: 1488,
-    database: 'supabase',
+    database: 'trololo',
     username: 'ololoev',
     password: 'mmm',
   },
