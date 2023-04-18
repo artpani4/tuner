@@ -14,5 +14,7 @@ manager.addRemoteConfigUrls(
     '../examples/config/prodBotConfig.ts',
   ],
 );
+manager.addLocalConfigUrl('../examples/config/localBotConfig.ts');
+manager.addLocalConfigUrl('../examples/config/prodBotConfig.ts');
 
 export default manager;
