@@ -1,4 +1,4 @@
-import { ConfigManager } from '../ConfigLoader/manager.ts';
+import { ConfigManager } from './manager.ts';
 import {
   BotConfig,
   BotConfigSchema,

@@ -1,5 +1,6 @@
 import { z, ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
-import { ConfigMatcher } from './localLoader.ts';
+import { resolve } from 'https://deno.land/std@0.159.0/path/posix.ts';
+export type ConfigMatcher<T> = (config: T) => boolean;
 
 export class ConfigManager<T, U extends ZodTypeAny = ZodTypeAny> {
   private config: T | null = null;
@@ -52,7 +53,11 @@ export class ConfigManager<T, U extends ZodTypeAny = ZodTypeAny> {
   ): Promise<T | null> {
     for await (const path of this.localConfigPaths) {
       if (path.includes('Config')) {
-        const { default: configModule } = await import(path);
+        // console.log(resolve(Deno.cwd(), path));
+        const { default: configModule } = await import(
+          'file://' + resolve(Deno.cwd(), path)
+        );
+
         const validatedConfig = this.configSchema.safeParse(
           configModule,
         );

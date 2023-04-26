@@ -2,6 +2,11 @@ import { generateSchema } from '../../schema/generator.ts';
 
 const localBotConfig = {
   env: 'LOCAL',
+  secrets: {
+    apiKey: 'ololo',
+    apiSecret: 'XXXXX',
+    apiPass: 'XXXXX',
+  },
   telegram: {
     botToken: 'ololo',
     chatId: '123213',
@@ -17,7 +22,7 @@ const localBotConfig = {
 
 export default localBotConfig;
 
-//Вызвал после того, как прописал конфиг
+// //Вызвал после того, как прописал конфиг
 // await generateSchema(
 //   localBotConfig,
 //   'BotConfig',
