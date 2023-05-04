@@ -1,12 +1,14 @@
 import { generateSchema } from '../../schema/generator.ts';
+import { BotConfig } from './botConfigSchema.ts';
 
-const localBotConfig = {
-  env: 'LOCAL',
-  secrets: {
-    apiKey: 'ololo',
-    apiSecret: 'XXXXX',
-    apiPass: 'XXXXX',
-  },
+const localBotConfig: BotConfig = {
+  name: 'LOCAL',
+  secrets: [
+    {
+      name: 'API_KEY',
+      value: '',
+    },
+  ],
   telegram: {
     botToken: 'ololo',
     chatId: '123213',
