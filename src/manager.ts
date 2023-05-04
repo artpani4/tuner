@@ -38,6 +38,15 @@ export class ConfigManager<
     this.localConfigPaths.push(...urls);
   }
 
+  getSecret(name: string) {
+    const secret = this.config?.secrets?.find((s) => s.name === name);
+    if (!secret) {
+      throw new Error(`Secret ${name} not found`);
+    }
+
+    return secret.value;
+  }
+
   fillSecrets(config: T): T {
     if (!config.secrets || config.secrets.length === 0) {
       return config;
@@ -67,16 +76,16 @@ export class ConfigManager<
         configModule as T,
       );
       if (validatedConfig.success && matcher(validatedConfig.data)) {
-        return this.fillSecrets(validatedConfig.data as T);
+        this.config = this.fillSecrets(validatedConfig.data);
+        return this.config;
       }
     }
-
-    throw new Error('No config found');
+    return null;
   }
+
   async localLoadConfig(
     matcher: ConfigMatcher<T>,
   ): Promise<T | null> {
-    console.log(this.localConfigPaths, Deno.cwd());
     for await (const path of this.localConfigPaths) {
       if (path.includes('Config')) {
         const { default: configModule } = await import(
@@ -89,7 +98,8 @@ export class ConfigManager<
         if (
           validatedConfig.success && matcher(validatedConfig.data)
         ) {
-          return this.fillSecrets(validatedConfig.data as T);
+          this.config = this.fillSecrets(validatedConfig.data);
+          return this.config;
         }
       }
     }
