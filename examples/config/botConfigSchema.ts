@@ -1,9 +1,10 @@
 import { z } from 'https://deno.land/x/zod/mod.ts';
+
 export const BotConfigSchema = z.object({
   name: z.string(),
   secrets: z.array(z.object({
     name: z.string(),
-    value: z.string(),
+    value: z.string().optional(),
   })),
   telegram: z.object({
     botToken: z.string(),
