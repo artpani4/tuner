@@ -1,8 +1,19 @@
-import { z, ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
+import { ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
 import { resolve } from 'https://deno.land/std@0.159.0/path/posix.ts';
+import { deepCopy, replacePair } from '../helpers/objTools.ts';
 export type ConfigMatcher<T> = (config: T) => boolean;
 
-export class ConfigManager<T, U extends ZodTypeAny = ZodTypeAny> {
+interface baseConfig {
+  secrets?: {
+    name: string;
+    value?: string | undefined;
+  }[];
+}
+
+export class ConfigManager<
+  T extends baseConfig,
+  U extends ZodTypeAny = ZodTypeAny,
+> {
   private config: T | null = null;
   private remoteConfigUrls: string[] = [];
   private localConfigPaths: string[] = [];
@@ -28,6 +39,48 @@ export class ConfigManager<T, U extends ZodTypeAny = ZodTypeAny> {
     this.localConfigPaths.push(...urls);
   }
 
+  getSecret(name: string) {
+    const secret = this.config?.secrets?.find((s) => s.name === name);
+    if (!secret) {
+      throw new Error(`Secret ${name} not found`);
+    }
+
+    return secret.value;
+  }
+
+  // insertEnvValues() {
+  //   let newConfig = deepCopy(this.config) as T;
+  //   if (this.config?.secrets) {
+  //     this.config.secrets.forEach((secret) => {
+  //       if (Deno.env.get(secret.name) !== undefined) {
+  //         newConfig = replacePair(
+  //           newConfig,
+  //           secret.name,
+  //           secret.value,
+  //         );
+  //       }
+  //     });
+  //     this.config = deepCopy(newConfig);
+  //   }
+  // }
+
+  fillSecrets(config: T): T {
+    if (!config.secrets || config.secrets.length === 0) {
+      return config;
+    }
+
+    const filledSecrets = config.secrets.map((secret) => {
+      secret;
+      const secretValue = Deno.env.get(secret.name) || secret.value;
+      if (secretValue === undefined) {
+        throw new Error(`Secret ${secret.name} not found`);
+      }
+      return { ...secret, value: secretValue };
+    });
+
+    return { ...config, secrets: filledSecrets };
+  }
+
   async remoteLoadConfig(
     matcher: ConfigMatcher<T>,
   ): Promise<T | null> {
@@ -41,19 +94,18 @@ export class ConfigManager<T, U extends ZodTypeAny = ZodTypeAny> {
         configModule as T,
       );
       if (validatedConfig.success && matcher(validatedConfig.data)) {
-        this.config = validatedConfig.data as T;
+        this.config = this.fillSecrets(validatedConfig.data);
         return this.config;
       }
     }
-
-    throw new Error('No config found');
+    return null;
   }
-  async localLoadConfig<T>(
+
+  async localLoadConfig(
     matcher: ConfigMatcher<T>,
   ): Promise<T | null> {
     for await (const path of this.localConfigPaths) {
       if (path.includes('Config')) {
-        // console.log(resolve(Deno.cwd(), path));
         const { default: configModule } = await import(
           'file://' + resolve(Deno.cwd(), path)
         );
@@ -64,7 +116,9 @@ export class ConfigManager<T, U extends ZodTypeAny = ZodTypeAny> {
         if (
           validatedConfig.success && matcher(validatedConfig.data)
         ) {
-          return validatedConfig.data;
+          this.config = this.fillSecrets(validatedConfig.data);
+          // this.insertEnvValues();
+          return this.config;
         }
       }
     }
