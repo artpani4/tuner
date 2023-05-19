@@ -5,7 +5,7 @@ try {
   const config = await manager.localLoadConfig(
     (config: BotConfig) => config.name === Deno.env.get('name'),
   );
-  console.log(config);
+  console.log(manager.getSecret('API_KEY'));
 } catch (e) {
   console.log(e);
 }
