@@ -48,22 +48,6 @@ export class ConfigManager<
     return secret.value;
   }
 
-  // insertEnvValues() {
-  //   let newConfig = deepCopy(this.config) as T;
-  //   if (this.config?.secrets) {
-  //     this.config.secrets.forEach((secret) => {
-  //       if (Deno.env.get(secret.name) !== undefined) {
-  //         newConfig = replacePair(
-  //           newConfig,
-  //           secret.name,
-  //           secret.value,
-  //         );
-  //       }
-  //     });
-  //     this.config = deepCopy(newConfig);
-  //   }
-  // }
-
   fillSecrets(config: T): T {
     if (!config.secrets || config.secrets.length === 0) {
       return config;
