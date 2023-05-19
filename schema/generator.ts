@@ -1,3 +1,4 @@
+import { jsonTree } from 'https://deno.land/x/json_tree/mod.ts';
 type ObjectType = { [key: string]: any };
 
 function createSchema(obj: ObjectType): string {
@@ -5,7 +6,9 @@ function createSchema(obj: ObjectType): string {
 
   for (const [key, value] of Object.entries(obj)) {
     const fieldSchema = createFieldSchema(key, value);
-    schemaFields.push(`${key}: ${fieldSchema}`);
+    if (key.includes(' ') || key.includes('-')) {
+      schemaFields.push(`"${key}": ${fieldSchema}`);
+    } else schemaFields.push(`${key}: ${fieldSchema}`);
   }
 
   const schema = `z.object({\n  ${schemaFields.join(',\n  ')}\n})`;
@@ -30,6 +33,9 @@ function createFieldSchema(key: string, value: any): string {
   }
 
   if (Array.isArray(value)) {
+    if (value.length == 0) {
+      return 'z.array(z.any())';
+    }
     const arrayItemSchemas = Array.from(
       new Set(value.map((item) => createFieldSchema(`${key}`, item))),
     );
@@ -66,7 +72,9 @@ export async function generateSchema(
     // file does not exist, create it and add import statement
     await Deno.writeTextFile(
       filePath,
-      `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${code}`,
+      `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${code}\n\n${
+        jsonTree(obj, false).replace(/^/gm, '//')
+      }`,
     );
     return;
   }
@@ -79,10 +87,17 @@ export async function generateSchema(
     ) {
       await Deno.writeTextFile(
         filePath,
-        `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${fileData}\n\n${code}`,
+        `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${fileData}\n\n${code}\n\n${
+          jsonTree(obj, false).replace(/^/gm, '//')
+        }`,
       );
     } else {
-      await Deno.writeTextFile(filePath, `${fileData}\n\n${code}`);
+      await Deno.writeTextFile(
+        filePath,
+        `${fileData}\n\n${code}\n\n${
+          jsonTree(obj, false).replace(/^/gm, '//')
+        }`,
+      );
     }
   } else {
     await Deno.writeTextFile(filePath, code);
