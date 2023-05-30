@@ -1,18 +1,24 @@
+// import {
+//   BotConfig,
+//   BotConfigSchema,
+// } from '../examples/config/botConfigSchema.ts';
+// import { ConfigManager } from './manager.ts';
+
 import {
   BotConfig,
-  BotConfigSchema,
-} from '../examples/config/botConfigSchema.ts';
-import { ConfigManager } from './manager.ts';
+  botConfigSchema,
+} from '../config/botConfigSchema.ts';
+import { ConfigManager } from './mod.ts';
 
-const manager = new ConfigManager<BotConfig, typeof BotConfigSchema>(
-  BotConfigSchema,
+const manager = new ConfigManager<BotConfig, typeof botConfigSchema>(
+  botConfigSchema,
 );
 
 manager.addRemoteConfigUrls(
   [
-    '../examples/config/localBotConfig.ts',
+    'config/localBotConfig.ts',
   ],
 );
-manager.addLocalConfigUrl('examples/config/localBotConfig.ts');
+manager.addLocalConfigUrl('config/localBotConfig.ts');
 
 export default manager;
