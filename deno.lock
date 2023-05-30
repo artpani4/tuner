@@ -99,6 +99,8 @@
     "https://deno.land/std@0.188.0/uuid/v3.ts": "220a3746cf315052252be7e8dbfa410f579f576b849129012cb2e2b14d05782f",
     "https://deno.land/std@0.188.0/uuid/v4.ts": "0f081880c156fd59b9e44e2f84ea0f94a3627e89c224eaf6cc982b53d849f37e",
     "https://deno.land/std@0.188.0/uuid/v5.ts": "a6b4da1235c6e554eafe812bdc7617b5e8666a86368fa729f11f1eca81a3a4d3",
+    "https://deno.land/x/dotenv@v3.2.2/mod.ts": "077b48773de9205266a0b44c3c3a3c3083449ed64bb0b6cc461b95720678d38e",
+    "https://deno.land/x/dotenv@v3.2.2/util.ts": "693730877b13f8ead2b79b2aa31e2a0652862f7dc0c5f6d2f313f4d39c7b7670",
     "https://deno.land/x/exec@0.0.5/mod.ts": "2a71f7e23e25be883275b22d872bbd2c3dfa3058934f1f156c8663fb81f5894f",
     "https://deno.land/x/json_tree@latest/mod.ts": "f635eeff567dd4050944294e3297dbc59a370acb6fb6e065ebb5a03516a40942",
     "https://deno.land/x/notion_sdk@v2.2.3/src/Client.ts": "00938a998e9aa825688979e6b51669f12387ff9800477dda255ca325a7868de8",

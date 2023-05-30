@@ -1,3 +1,5 @@
+// import { BotConfig } from './botConfigSchema.ts';
+
 import { BotConfig } from './botConfigSchema.ts';
 
 const localBotConfig: BotConfig = {
@@ -11,6 +13,16 @@ const localBotConfig: BotConfig = {
   telegram: {
     botToken: 'ololo',
     chatId: '123213',
+    tokens: [{
+      a: 10,
+      b: 20,
+      c: 30,
+    }, {
+      a: 40,
+      b: 100,
+      d: 500,
+      f: 900,
+    }],
   },
   database: {
     supaApi: 'lalala',

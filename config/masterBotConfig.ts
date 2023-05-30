@@ -1,3 +1,5 @@
+// import { BotConfig } from './botConfigSchema.ts';
+
 import { BotConfig } from './botConfigSchema.ts';
 
 const localBotConfig: BotConfig = {

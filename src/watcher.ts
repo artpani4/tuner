@@ -45,8 +45,15 @@ async function updateSchemaForConfigFile(
   const modulePath = 'file://' + resolve(Deno.cwd(), filePath);
   const versionedModulePath =
     `${modulePath}?version=${Math.random()}.ts`;
-  let configModule = await import(versionedModulePath);
-
+  let configModule;
+  try {
+    console.log(versionedModulePath);
+    configModule = await import(versionedModulePath);
+    console.log(configModule);
+  } catch (e) {
+    console.log(e);
+  }
+  console.log(configModule);
   const regex = /\/([^/]+)\.ts$/;
   const match = filePath.match(regex);
 

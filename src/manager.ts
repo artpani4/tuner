@@ -1,3 +1,4 @@
+import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
 import { ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
 import { resolve } from 'https://deno.land/std@0.159.0/path/posix.ts';
 import { deepCopy, replacePair } from '../helpers/objTools.ts';
@@ -55,7 +56,8 @@ export class ConfigManager<
 
     const filledSecrets = config.secrets.map((secret) => {
       secret;
-      const secretValue = Deno.env.get(secret.name) || secret.value;
+      const secretValue = Deno.env.get(secret.name) ||
+        dotenvConfig()[secret.name];
       if (secretValue === undefined) {
         throw new Error(`Secret ${secret.name} not found`);
       }

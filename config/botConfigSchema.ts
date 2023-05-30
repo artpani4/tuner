@@ -8,7 +8,17 @@ export const botConfigSchema = z.object({
 })),
   telegram: z.object({
   botToken: z.string(),
-  chatId: z.string()
+  chatId: z.string(),
+  tokens: z.array(z.union([z.object({
+  a: z.number(),
+  b: z.number(),
+  c: z.number()
+}),z.object({
+  a: z.number(),
+  b: z.number(),
+  d: z.number(),
+  f: z.number()
+})]))
 }),
   database: z.object({
   supaApi: z.string(),
@@ -26,7 +36,17 @@ export type BotConfig = z.infer<typeof botConfigSchema>;
 //│     └─ value
 //├─ telegram
 //│  ├─ botToken
-//│  └─ chatId
+//│  ├─ chatId
+//│  └─ tokens
+//│     ├─ 0
+//│     │  ├─ a
+//│     │  ├─ b
+//│     │  └─ c
+//│     └─ 1
+//│        ├─ a
+//│        ├─ b
+//│        ├─ d
+//│        └─ f
 //└─ database
 //   ├─ supaApi
 //   ├─ username
