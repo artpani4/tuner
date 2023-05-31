@@ -1,6 +1,5 @@
 import { BotConfig } from '../config/botConfigSchema.ts';
 import manager from './config.ts';
-import { watchConfigFiles } from './watcher.ts';
 
 try {
   const config = await manager.localLoadConfig(

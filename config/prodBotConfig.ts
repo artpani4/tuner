@@ -1,6 +1,6 @@
-import { BotConfig } from './botConfigSchema.ts';
-const localBotConfig: BotConfig = {
-  name: 'local',
+import {BotConfig} from './botConfigSchema.ts';
+const prodBotConfig: BotConfig = {
+  name: 'prod',
   secrets: [
     {
       name: 'API_KEY',
@@ -9,7 +9,7 @@ const localBotConfig: BotConfig = {
   ],
   telegram: {
     botToken: 'ololo',
-    chatId: '123213',
+    name: 'artpani',
     tokens: [{
       a: 10,
       b: 20,
@@ -28,4 +28,4 @@ const localBotConfig: BotConfig = {
   },
 };
 
-export default localBotConfig;
+export default prodBotConfig;

@@ -1,14 +1,11 @@
-import { watchConfigFiles } from '../src/watcher.ts';
+import {
+  ConfigFilePaths,
+  watchConfigFiles,
+} from '../src/localWatch.ts';
 
-const configFilePaths = [
-  {
-    filePath: 'config/localBotConfig.ts',
-    configType: 'botConfig',
-  },
-  {
-    filePath: 'config/masterBotConfig.ts',
-    configType: 'botConfig',
-  },
-];
+const configFilePaths: ConfigFilePaths = {
+  filePaths: ['config/localBotConfig.ts', 'config/prodBotConfig.ts'],
+  configType: 'botConfig',
+};
 
 await watchConfigFiles(configFilePaths);
