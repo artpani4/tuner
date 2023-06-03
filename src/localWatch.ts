@@ -10,6 +10,11 @@ export type ConfigFilePaths = {
   configType: string;
 };
 
+/**
+ * Наблюдает за изменениями файлов конфигурации и выполняет необходимые операции при изменении.
+ * @param configFilePaths - Объект, содержащий пути к файлам конфигурации и тип конфигурации.
+ * @returns void.
+ */
 export async function watchConfigFiles(
   configFilePaths: ConfigFilePaths,
 ) {
@@ -48,6 +53,13 @@ export async function watchConfigFiles(
   }
 }
 
+/**
+ * Обновляет схему для файла конфигурации.
+ * @param filePath - Путь к файлу конфигурации.
+ * @param configType - Тип конфигурации.
+ * @throws {Error} - Если возникла ошибка при обновлении схемы.
+ * @returns void.
+ */
 async function updateSchemaForConfigFile(
   filePath: string,
   configType: string,
@@ -100,6 +112,13 @@ async function updateSchemaForConfigFile(
   }
 }
 
+/**
+ * Добавляет тип и импорт схемы в файл конфигурации.
+ * @param code - Код файла конфигурации.
+ * @param type - Тип конфигурации.
+ * @throws {Error} - Если возникла ошибка при добавлении типа и импорта схемы
+ * @returns - Массив, содержащий булевое значение, указывающее на наличие изменений, и модифицированный код файла конфигурации.
+ */
 function typeAdd(code: string, type: string): [boolean, string] {
   const regType = /const\s+(\w+)\s*(:\s*\w+)?\s*=\s*{[\s\S]*?};/;
   const matchType = code.match(regType);
