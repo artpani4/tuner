@@ -3,12 +3,12 @@ import { z } from 'https://deno.land/x/zod/mod.ts';
 export const botConfigSchema = z.object({
   name: z.string(),
   secrets: z.array(z.object({
-  name: z.string(),
-  value: z.string()
+  name: z.string()
 })),
   telegram: z.object({
-  botToken: z.string(),
+  salt: z.string(),
   chatId: z.string(),
+  newField: z.number(),
   tokens: z.array(z.union([z.object({
   a: z.number(),
   b: z.number(),
@@ -32,11 +32,11 @@ export type BotConfig = z.infer<typeof botConfigSchema>;
 //├─ name
 //├─ secrets
 //│  └─ 0
-//│     ├─ name
-//│     └─ value
+//│     └─ name
 //├─ telegram
-//│  ├─ botToken
+//│  ├─ salt
 //│  ├─ chatId
+//│  ├─ newField
 //│  └─ tokens
 //│     ├─ 0
 //│     │  ├─ a

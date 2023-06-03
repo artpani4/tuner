@@ -1,15 +1,15 @@
-import {BotConfig} from './botConfigSchema.ts';
+import { BotConfig } from './botConfigSchema.ts';
 const prodBotConfig: BotConfig = {
   name: 'prod',
   secrets: [
     {
       name: 'API_KEY',
-      value: 'ololo1',
     },
   ],
   telegram: {
-    botToken: 'ololo',
-    name: 'artpani',
+    salt: 'prodsalt2',
+    chatId: '123',
+    newField: 1000,
     tokens: [{
       a: 10,
       b: 20,

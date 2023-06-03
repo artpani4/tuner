@@ -1,13 +1,15 @@
-import { BotConfig } from './botConfigSchema.ts';
-const localBotConfig: BotConfig = {
-  name: 'local',
+import { botConfigSchema } from '../config/botConfigSchema.ts';
+
+const localBotConfig = {
+  name: 'remote',
   secrets: [
     {
       name: 'API_KEY',
+      value: 'ololo1',
     },
   ],
   telegram: {
-    salt: 'localSalt',
+    salt: 'salt2',
     chatId: '123',
     newField: 1000,
     tokens: [{
@@ -28,4 +30,4 @@ const localBotConfig: BotConfig = {
   },
 };
 
-export default localBotConfig;
+console.log(botConfigSchema.safeParse(localBotConfig).success);

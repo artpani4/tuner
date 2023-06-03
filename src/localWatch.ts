@@ -1,6 +1,9 @@
 import { resolve } from 'https://deno.land/std/path/mod.ts';
 import { generateSchema } from '../schema/generator.ts';
-import { firstLetterCapitalize } from '../helpers/stringUtils.ts';
+import {
+  firstLetterCapitalize,
+  pseudoVersion,
+} from '../helpers/stringUtils.ts';
 
 export type ConfigFilePaths = {
   filePaths: string[];
@@ -31,6 +34,7 @@ export async function watchConfigFiles(
 
       timer = setTimeout(async () => {
         const fP = event.paths[0];
+        console.log(fP);
         const config = configs.find(
           (c) => resolve(Deno.cwd(), c.filePath) === fP,
         );
@@ -50,9 +54,8 @@ async function updateSchemaForConfigFile(
 ) {
   try {
     const modulePath = 'file://' + resolve(Deno.cwd(), filePath);
-    const versionedModulePath =
-      `${modulePath}?version=${Math.random()}`;
-    const configModule = await import(modulePath);
+    const versionedModulePath = pseudoVersion(modulePath);
+    const configModule = await import(versionedModulePath);
     // console.log('Модуль успешно загружается с помощью import');
     const fileContent = new TextDecoder().decode(
       await Deno.readFile(filePath),
@@ -70,9 +73,8 @@ async function updateSchemaForConfigFile(
       `../${configType}Schema.ts`,
     );
     const configObject = configModule.default;
+    console.log(configObject);
     await Deno.writeTextFile(schemaFilePath, '');
-    // console.log(`Cleared ${schemaFilePath}`);
-    // console.log(`Start to write into ${schemaFilePath} file`);
     await generateSchema(
       configObject,
       configType,

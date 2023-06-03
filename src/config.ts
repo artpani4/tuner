@@ -16,9 +16,9 @@ const manager = new ConfigManager<BotConfig, typeof botConfigSchema>(
 
 manager.addRemoteConfigUrls(
   [
-    'config/localBotConfig.ts',
+    'https://raw.githubusercontent.com/artpani4/configTest/main/configTest.ts',
   ],
 );
 manager.addLocalConfigUrl('config/localBotConfig.ts');
-
+await manager.setMainConfig('config/localBotConfig.ts', 'local');
 export default manager;
