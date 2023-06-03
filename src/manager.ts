@@ -33,11 +33,11 @@ export class ConfigManager<
     this.remoteConfigUrls.push(...urls);
   }
 
-  addLocalConfigUrl(url: string) {
+  addLocalConfigPath(url: string) {
     this.localConfigPaths.push(url);
   }
 
-  addLocalConfigUrls(urls: string[]) {
+  addLocalConfigPaths(urls: string[]) {
     this.localConfigPaths.push(...urls);
   }
 
