@@ -4,7 +4,7 @@ import {
 } from '../src/localWatch.ts';
 
 const configFilePaths: ConfigFilePaths = {
-  filePaths: ['config/localBotConfig.ts', 'config/prodBotConfig.ts'],
+  filePaths: ['config/localBotConfig.ts'],
   configType: 'botConfig',
 };
 

@@ -6,26 +6,8 @@ const localBotConfig: BotConfig = {
       name: 'API_KEY',
     },
   ],
-  telegram: {
-    salt: 'localSalt',
-    chatId: '123',
-    newField: 1000,
-    tokens: [{
-      a: 10,
-      b: 20,
-      c: 30,
-    }, {
-      a: 40,
-      b: 100,
-      d: 500,
-      f: 900,
-    }],
-  },
-  database: {
-    supaApi: 'lalala',
-    username: 'ololoev',
-    password: 'mmm',
-  },
+  pageNotion: '6f798814a1b74f0c95b190962a506f98',
+  codeBlockId: '9a4e81da0d324cd9b9e5ebb2b92c4f71',
 };
-
+// https://www.notion.so/artpani/6f798814a1b74f0c95b190962a506f98?pvs=4#9a4e81da0d324cd9b9e5ebb2b92c4f71
 export default localBotConfig;

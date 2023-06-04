@@ -2,6 +2,7 @@ import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
 import { ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
 import { resolve } from 'https://deno.land/std@0.159.0/path/posix.ts';
 import { pseudoVersion } from '../helpers/stringUtils.ts';
+import { importFromString } from '../helpers/importUtils.ts';
 
 /**
  * ConfigMatcher - функция, используемая для сопоставления конфигурации с заданными критериями.
@@ -16,6 +17,23 @@ interface baseConfig {
 }
 
 /**
+ * Возвращает значение секрета по его имени.
+ *
+ * @param name - имя секрета.
+ * @returns значение секрета.
+ * @throws Error, если секрет не найден.
+ */
+export function getSecret(name: string) {
+  const secret = Deno.env.get(name) ||
+    dotenvConfig()[name];
+  if (!secret) {
+    throw new Error(`Secret ${name} not found`);
+  }
+
+  return secret;
+}
+
+/**
  * Класс ConfigManager обрабатывает управление конфигурацией.
  *
  * @template T - тип конфигурации.
@@ -27,6 +45,7 @@ export class ConfigManager<
 > {
   private config: T | null = null;
   private remoteConfigUrls: string[] = [];
+  private remoteConfigCallbacks: (() => Promise<string>)[] = [];
   private localConfigPaths: string[] = [];
   private configSchema: U;
   private mainConfig: T | null = null;
@@ -76,19 +95,12 @@ export class ConfigManager<
   }
 
   /**
-   * Возвращает значение секрета по его имени.
+   * Добавляет удаленный источник конфигурации с использованием асинхронного колбэка.
    *
-   * @param name - имя секрета.
-   * @returns значение секрета.
-   * @throws Error, если секрет не найден.
+   * @param callback - асинхронный колбэк, возвращающий строку с конфигурацией.
    */
-  getSecret(name: string) {
-    const secret = this.config?.secrets?.find((s) => s.name === name);
-    if (!secret) {
-      throw new Error(`Secret ${name} not found`);
-    }
-
-    return secret.value;
+  async addRemoteProSource(callback: () => Promise<string>) {
+    this.remoteConfigCallbacks.push(callback);
   }
 
   /**
@@ -124,8 +136,7 @@ export class ConfigManager<
 
     const filledSecrets = config.secrets.map((secret) => {
       secret;
-      const secretValue = Deno.env.get(secret.name) ||
-        dotenvConfig()[secret.name];
+      const secretValue = getSecret(secret.name);
       if (secretValue === undefined) {
         throw new Error(`Secret ${secret.name} not found`);
       }
@@ -195,9 +206,7 @@ export class ConfigManager<
         return config;
       }
     }
-    if (this.mainConfig == null) {
-      throw new Error('No config found');
-    }
+
     return this.mainConfig;
   }
 
@@ -216,6 +225,15 @@ export class ConfigManager<
         return config;
       }
     }
+
+    for (const callback of this.remoteConfigCallbacks) {
+      const configStr = await callback();
+      const config = importFromString(configStr);
+      if (matcher(config)) {
+        return this.validateConfig(config);
+      }
+    }
+
     return null;
   }
 
@@ -226,10 +244,18 @@ export class ConfigManager<
    * @returns конфигурация, соответствующая критериям, или null, если конфигурация не найдена.
    */
   async loadConfig(matcher: ConfigMatcher<T>): Promise<T | null> {
+    const localConfig = await this.localLoadConfig(matcher);
+    if (localConfig) {
+      return localConfig;
+    }
+
     const remoteConfig = await this.remoteLoadConfig(matcher);
     if (remoteConfig) {
       return remoteConfig;
     }
-    return this.localLoadConfig(matcher);
+    if (this.mainConfig == null) {
+      throw new Error('No config found');
+    }
+    return this.mainConfig;
   }
 }
