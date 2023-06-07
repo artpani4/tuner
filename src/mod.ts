@@ -1,1 +1,1 @@
-export { ConfigManager } from './manager.ts';
+export { ConfigManager, getSecret } from './manager.ts';
