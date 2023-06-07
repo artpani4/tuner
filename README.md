@@ -5,6 +5,7 @@
 Tuner - модуль для управления конфигурациями проекта.
 Данные конфигурации описываются в виде .ts файла, содержащего объект с полями и значениями.
 Файлы могут храниться как в самом проекте(local файлы), так и удаленно (remote).
+Притом доступ к удаленным файлам можно осуществлять непосредственно передавая путь, либо прописать колбэк-фукнцию, которая извлекает нужные данные.
 
 Фактически, модуль предоставляет класс для менеджмента файлов конфига и несколько фукнций, обновляющие схемы конфига в реальном времени для удобной отладки и разработки.
 
@@ -14,27 +15,25 @@ Tuner - модуль для управления конфигурациями п
 
 - [Tuner](#tuner)
   - [Оглавление](#оглавление)
-  - [Использование](#использование)
-    - [Генерация и обновление схемы](#генерация-и-обновление-схемы)
-    - [Создание менеджера конфигов](#создание-менеджера-конфигов)
-    - [Использование менеджера конфигов](#использование-менеджера-конфигов)
+  - [Генерация и обновление схемы](#-генерация-и-обновление-схемы)
+  - [Создание менеджера конфигов](#-создание-менеджера-конфигов)
+  - [Использование менеджера конфигов](#-использование-менеджера-конфигов)
+  - [Поддерживаемые сервисы](#-поддерживаемые-сервисы)
 
-## Использование
-
-### Генерация и обновление схемы
+## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/sprout.png" alt="sprout"/> Генерация и обновление схемы
 
 Для более комфортого обращения с конфигурацией интерфейсы объектов с данными конфига должны быть определены. Кроме того, при изменени конфига схема должна быть автоматически переписана.
 
-Пусть в папке _config_ имеется файл _localSupabaseConfig.ts_
+Пусть в папке _config_ имеется файл _localConfig.ts_
 
-Требований к названию файлов конфига нет.
+> Требований к названию файлов конфига нет.
 
 Сам объект обязан содержать поле secrets с указанием названий секретных переменных.
 
 > secrets : {name: string}[]
 
 ```ts
-// config/localSupabaseConfig.ts
+// config/localConfig.ts
 const localSupabase = {
   name: 'local',
   secrets: [
@@ -45,9 +44,9 @@ const localSupabase = {
       name: 'URL',
     },
   ],
-  timeout: 200,
-  mainTable: 'customer',
-  otherKey: 'otherValue',
+  timeoutToUpdate: 200,
+  mainTable: 'Wallets',
+  isSubscribtionOn: true,
 };
 
 export default localSupabase;
@@ -60,11 +59,9 @@ export default localSupabase;
 import { watchConfigFiles } from 'https://deno.land/x/tuner/mod.ts';
 
 const configFilePaths: ConfigFilePaths = {
-  // Пути до файлов конфига типа supabaseConfig
   filePaths: [
-    'config/localSupabaseConfig.ts',
-    'config/stageSupabaseConfig.ts',
-    'config/prodSupabaseConfig.ts',
+    'config/localConfig.ts',
+    'config/prodConfig.ts',
   ],
   configType: 'supabaseConfig',
 };
@@ -76,9 +73,9 @@ await watchConfigFiles(configFilePaths);
 
 Файл схемы конфига расположен в той же директории с названием _${configType}Schema.ts_
 
-> Выведенный тип и его импорт автоматически впишется в config/localSupabaseConfig.ts, ...
+> Выведенный тип и его импорт автоматически впишется в config/localConfig.ts, ...
 
-### Создание менеджера конфигов
+## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/hammer.png" alt="hammer"/> Создание менеджера конфигов
 
 ```ts
 // config/manager.ts
@@ -86,7 +83,10 @@ import {
   SupabaseConfig,
   SupabaseConfigSchema,
 } from '../config/supabaseConfigSchema.ts';
-import { ConfigManager } from 'https://deno.land/x/tuner/mod.ts';
+import {
+  ConfigManager,
+  getNotionConfig,
+} from 'https://deno.land/x/tuner/mod.ts';
 
 const manager = new ConfigManager<
   SupabaseConfig,
@@ -101,34 +101,82 @@ manager.addRemoteConfigUrl(
 );
 
 // Добавление нескольких удаленных конфигов
-manager.addRemoteConfigUrls(
-  'https://raw.githubusercontent.com/artpani4/configTest/main/configTest.ts',
+manager.addRemoteConfigUrls([
   'http://example.com/supabaseConfigRu.ts',
   'http://example.com/supabaseConfigEn.ts',
-);
+]);
 
 // Добавление одного локального конфига
-manager.addLocalConfigUrl('config/localSupabaseConfig.ts.ts');
+manager.addLocalConfigUrl('config/localConfig.ts');
 
 // Добавление несокльких локальных конфигов
 manager.addLocalConfigUrls([
-  'config/localSupabaseConfig.ts',
-  'config/stageSupabaseConfig.ts',
-  'config/prodSupabaseConfig.ts',
+  'config/localConfig.ts',
+  'config/prodConfig.ts',
 ]);
+
+// Передаем callback, который возвращет строку с объектом
+// В данном случае getNotionConfig(key: string, blockId: string): Promise<string>
+manager.addRemoteProSource(async () => {
+  return await getNotionConfig(
+    getSecret('NOTION_KEY'),
+    'blockID',
+  );
+});
 
 // Если проийзодет какая-то ошибка при подгрузке какого-то из конфигов, то данный конфиг загрузится по умолчанию
 // Если проблема возникнет и с ним(или же конфига по умолчанию нет, а целевой конфиг недоступен) сработать исключение.
-await manager.setMainConfig('config/localBotConfig.ts', 'local');
+await manager.setMainConfig('config/localConfig.ts', 'local');
 export default manager;
 ```
 
-### Использование менеджера конфигов
+> Конфиги, которые добавляются методами **.addRemoteConfigUrl** и **.addRemoteConfigUrls** прописываются таким же образом, как и локальные конфиги
+>
+> Конфиги, подключаемые через **.addRemoteProSource** описываются без const ..., только сам объект конфига.
+
+```ts
+// Конфиг будет подключен через addRemoteConfigUrl
+const prodSupabase = {
+  name: 'gitRaw',
+  secrets: [
+    {
+      name: 'API_KEY',
+    },
+    {
+      name: 'URL',
+    },
+  ],
+  timeoutToUpdate: 100,
+  mainTable: 'Invoices',
+  isSubscribtionOn: false,
+};
+
+export default prodSupabase;
+
+// Конфиг будет подключен через .addRemoteProSource
+{
+  name: 'notion',
+  secrets: [
+    {
+      name: 'API_KEY',
+    },
+    {
+      name: 'URL',
+    },
+  ],
+  timeoutToUpdate: 3000,
+  mainTable: 'Notion',
+  isSubscribtionOn: true,
+};
+```
+
+## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/rocket.png" alt="rocket"/> Использование менеджера конфигов
 
 ```ts
 // src/index.ts
 import { SupabaseConfig } from '../config/supabaseConfigSchema.ts';
 import manager from '../config/manager.ts';
+import { getSecret } from 'https://deno.land/x/tuner/mod.ts';
 
 try {
   // Аргументом является предикат, который представляет собой функцию для фильтрации конфигов.
@@ -138,8 +186,8 @@ try {
   );
   console.log(config);
   // Извлечение сикретов
-  const dbApiKey = manager.getSecret('API_KEY');
-  const dbUrl = manager.getSecret('URL');
+  const dbApiKey = getSecret('API_KEY');
+  const dbUrl = getSecret('URL');
 } catch (e) {
   console.log(e);
 }
@@ -159,3 +207,26 @@ URL=https://your_db_url.supabase.co
 ```
 
 Если сикрет не находится, генерируется исключение.
+
+## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/puzzle.png" alt="puzzle"/> Поддерживаемые сервисы
+
+Добавление колбэка для подгрузки конфига ситуативно, но бывает полезно во многих случаях.
+
+На данный момент доступны интеграции с:
+
+- Notion(блок **/code**)
+- GitHub(файл в репозитории)
+
+```ts
+// Notion
+// blockId расположен после # в ссылке на блок
+getNotionConfig(key: string, blockId: string)
+
+// GihHub
+getGitHubConfig(
+  apiKey: string,
+  owner: string,
+  repo: string,
+  filePath: string,
+)
+```
