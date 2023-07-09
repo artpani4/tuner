@@ -4,12 +4,14 @@ import {
   firstLetterCapitalize,
   pseudoVersion,
 } from '../helpers/stringUtils.ts';
+import { envTypes } from './manager.ts';
 
 export type ConfigFilePaths = {
   filePaths: string[];
   configType: string;
 };
 
+const enumTypes: envTypes = {};
 /**
  * Наблюдает за изменениями файлов конфигурации и выполняет необходимые операции при изменении.
  * @param configFilePaths - Объект, содержащий пути к файлам конфигурации и тип конфигурации.

@@ -1,64 +1,72 @@
 import { jsonTree } from 'https://deno.land/x/json_tree/mod.ts';
-type ObjectType = { [key: string]: any };
+import { z } from 'https://deno.land/x/zod/mod.ts';
 
-function createSchema(obj: ObjectType): string {
-  const schemaFields: string[] = [];
+type ObjectType = { [key: string]: any };
+type SchemaType = z.ZodSchema<any>;
+
+function createSchema(obj: ObjectType): SchemaType {
+  const schemaFields: { [key: string]: SchemaType } = {};
 
   for (const [key, value] of Object.entries(obj)) {
     const fieldSchema = createFieldSchema(key, value);
-    if (key.includes(' ') || key.includes('-')) {
-      schemaFields.push(`"${key}": ${fieldSchema}`);
-    } else schemaFields.push(`${key}: ${fieldSchema}`);
+    schemaFields[key] = fieldSchema;
   }
 
-  const schema = `z.object({\n  ${schemaFields.join(',\n  ')}\n})`;
-
-  return schema;
+  return z.object(schemaFields);
 }
 
-function createFieldSchema(key: string, value: any): string {
+function createFieldSchema(key: string, value: any): SchemaType {
   if (value === null || value === undefined) {
-    return 'z.literal(null)';
+    return z.literal(null);
   }
   if (typeof value === 'string') {
-    return 'z.string()';
+    return z.string();
   }
 
   if (typeof value === 'number') {
-    return 'z.number()';
+    return z.number();
   }
 
   if (typeof value === 'boolean') {
-    return 'z.boolean()';
+    return z.boolean();
   }
 
   if (Array.isArray(value)) {
-    if (value.length == 0) {
-      return 'z.array(z.any())';
+    if (value.length === 0) {
+      return z.array(z.any());
     }
     const arrayItemSchemas = Array.from(
       new Set(value.map((item) => createFieldSchema(`${key}`, item))),
     );
 
     return arrayItemSchemas.length > 1
-      ? `z.array(z.union([${arrayItemSchemas.join(',')}]))`
-      : `z.array(${arrayItemSchemas[0]})`;
+      ? z.array(z.union(arrayItemSchemas))
+      : z.array(arrayItemSchemas[0]);
   }
 
   if (typeof value === 'object') {
     const objectSchema = createSchema(value);
-    return `${objectSchema}`;
+    return objectSchema;
   }
 
   throw new Error(`Type of field '${key}' is not supported`);
 }
 
+type CustomTypes = { [key: string]: SchemaType };
+
 export async function generateSchema(
   obj: ObjectType,
   variableName: string,
   filePath: string,
+  customTypes?: CustomTypes,
 ): Promise<void> {
   const schema = createSchema(obj);
+
+  if (customTypes) {
+    for (const [key, value] of Object.entries(customTypes)) {
+      schema.refine((data) => data[key] === value);
+    }
+  }
 
   const code =
     `export const ${variableName}Schema = ${schema}\n\nexport type ${

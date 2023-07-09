@@ -1,14 +1,16 @@
-import {SupabaseConfig} from './supabaseConfigSchema.ts';
+import { SupabaseConfig } from './supabaseConfigSchema.ts';
+import { envTypes } from '../../../src/manager.ts';
 const localSupabase: SupabaseConfig = {
   name: 'local',
-  secrets: [
-    {
-      name: 'API_KEY',
+  env: {
+    NOTION_API_KEY: {
+      type: envTypes.string, //enum
     },
-    {
-      name: 'URL',
+
+    GITHIUB_API_KEY: {
+      type: envTypes.number, //enum
     },
-  ],
+  },
   timeoutToUpdate: 1200,
   mainTable: 'Wallets',
   isSubscribtionOn: false,

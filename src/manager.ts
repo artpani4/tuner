@@ -2,18 +2,30 @@ import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
 import { ZodTypeAny } from 'https://deno.land/x/zod/mod.ts';
 import { resolve } from 'https://deno.land/std@0.159.0/path/posix.ts';
 import { pseudoVersion } from '../helpers/stringUtils.ts';
-import { importFromString } from '../helpers/importUtils.ts';
+import { importFromStringHard } from '../helpers/importUtils.ts';
 
 /**
  * ConfigMatcher - функция, используемая для сопоставления конфигурации с заданными критериями.
  */
 export type ConfigMatcher<T> = (config: T) => boolean;
 
+export enum envTypes {
+  string = 'string',
+  number = 'number',
+  boolean = 'boolean',
+}
+
+type EnvConfig = {
+  [key: string]: EnvObject;
+};
+
+type EnvObject = {
+  type: envTypes;
+  default?: string;
+};
+
 interface baseConfig {
-  secrets?: {
-    name: string;
-    value?: string | undefined;
-  }[];
+  env: EnvConfig;
 }
 
 /**
@@ -130,11 +142,11 @@ export class ConfigManager<
    * @throws Error, если секрет не найден.
    */
   fillSecrets(config: T): T {
-    if (!config.secrets || config.secrets.length === 0) {
+    if (!config.env || config.env.length === 0) {
       return config;
     }
 
-    const filledSecrets = config.secrets.map((secret) => {
+    const filledSecrets = config.env.map((secret) => {
       secret;
       const secretValue = getSecret(secret.name);
       if (secretValue === undefined) {
@@ -228,7 +240,7 @@ export class ConfigManager<
 
     for (const callback of this.remoteConfigCallbacks) {
       const configStr = await callback();
-      const config = importFromString(configStr);
+      const config = (await importFromStringHard(configStr)) as T;
       if (matcher(config)) {
         return this.validateConfig(config);
       }
