@@ -1,16 +1,19 @@
-type getRemote<T> = (
-  options: { [key: string]: unknown },
-) => Promise<string | T>;
+export type getRemote = () => Promise<ITunerConfig>;
 
 type envFun = (envValue: string) => string | number | boolean;
 type envAsyncFun = (
   envValue: string,
 ) => Promise<string | number | boolean>;
 
-// Тут пока побудет
+type loadAsyncFun = (path: string) =>
+  | Promise<ITunerConfig>
+  | ((
+    cb: () => Promise<{ default: ITunerConfig }>,
+  ) => Promise<ITunerConfig>);
+
 export interface ITunerConfig {
-  parent?: string | getRemote<ITunerConfig>;
-  child?: string | getRemote<ITunerConfig>;
+  parent?: () => Promise<ITunerConfig>;
+  child?: () => Promise<ITunerConfig>;
   env?: {
     [key: string]: envFun | envAsyncFun;
   };
@@ -19,8 +22,8 @@ export interface ITunerConfig {
 }
 
 export interface IFilledTunerConfig {
-  parent?: string | getRemote<ITunerConfig>;
-  child?: string | getRemote<ITunerConfig>;
+  parent?: loadAsyncFun;
+  child?: loadAsyncFun;
   env?: {
     [key: string]: string | number | boolean;
   };

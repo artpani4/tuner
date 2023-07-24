@@ -1,9 +1,13 @@
-import { IFilledTunerConfig, ITunerConfig } from './typeFunc.ts';
+import {
+  getRemote,
+  IFilledTunerConfig,
+  ITunerConfig,
+} from './typeFunc.ts';
 import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
-import { resolve } from 'https://deno.land/std@0.195.0/path/posix.ts';
-
-import { walk } from 'https://deno.land/std/fs/mod.ts';
+import Load from './loadFun.ts';
 import { missingConfigNameEnv } from './error.ts';
+
+type configList = { [key: number]: ITunerConfig };
 
 export function getEnv(name: string): string {
   const value = Deno.env.get(name) || dotenvConfig()[name];
@@ -13,35 +17,20 @@ export function getEnv(name: string): string {
   return value;
 }
 
-async function findDirectory(
-  directoryPath: string,
-  targetName: string,
-): Promise<string | null> {
-  for await (const entry of walk(directoryPath)) {
-    if (entry.isDirectory && entry.name === targetName) {
-      return entry.path;
-    }
-  }
-  return null;
-}
-
-async function findDirectoryInCWD(
-  name: string,
-): Promise<string | null> {
-  return findDirectory(Deno.cwd(), name);
-}
-
 export async function loadConfig(): Promise<void> {
   const configName = getEnv('config');
-  const configDir = await findDirectoryInCWD('config');
-  const configPath = `${configDir}/${configName}.tuner.ts`;
-  const rawModule = await import(configPath);
-  let rawConfig = rawModule.default as ITunerConfig;
-  const finalParentCombined = await combineParent(
-    rawConfig,
-    configDir!,
-  );
-  console.log(finalParentCombined);
+  const mainConfig =
+    await (await Load.fromConfigDir(`${configName}.tuner.ts`)());
+  const configSequence = await inheritList(mainConfig);
+  const mergedConfig = mergeSequentialConfigs(configSequence);
+  console.log(fillEnv(mergedConfig));
+  // const rawModule = await import(configPath);
+  // let rawConfig = rawModule.default as ITunerConfig;
+  // const finalParentCombined = await combineParent(
+  //   rawConfig,
+  //   configDir!,
+  // );
+  // console.log(finalParentCombined);
 }
 
 function fillEnv(config: ITunerConfig): IFilledTunerConfig {
@@ -61,7 +50,10 @@ function fillEnv(config: ITunerConfig): IFilledTunerConfig {
 
 function mergeRecursive(target: any, source: any): any {
   for (const key in source) {
-    if (typeof source[key] === 'object' && source[key] !== null) {
+    if (
+      typeof source[key] === 'object' && source[key] !== null &&
+      !Array.isArray(source[key])
+    ) {
       target[key] = mergeRecursive(target[key] || {}, source[key]);
     } else {
       target[key] = source[key];
@@ -79,18 +71,63 @@ function mergeConfigs(
   return { ...child, env: mergedEnv, config: mergedConfig };
 }
 
-async function combineParent(
-  child: ITunerConfig,
-  configDirectory: string,
-): Promise<ITunerConfig> {
-  if (!child.parent) {
-    return child;
+// async function combineParent(
+//   child: ITunerConfig,
+//   configDirectory: string,
+// ): Promise<ITunerConfig> {
+//   if (!child.parent) {
+//     return child;
+//   }
+
+//   const parentPath = resolve(configDirectory, child.parent as string);
+//   const parent = (await import(parentPath)).default as ITunerConfig;
+//   const newChild = mergeConfigs(parent, child);
+//   console.log(newChild);
+//   console.log('----------------');
+//   if (!parent.parent) return newChild;
+//   newChild.parent = parent.parent;
+//   return combineParent(newChild, configDirectory);
+// }
+
+// async function loadModule(ref: getRemote) {
+//   const remote = await ref();
+//   return (await ref()) as ITunerConfig;
+// }
+
+async function inheritList(
+  curConfig: ITunerConfig,
+  store: configList = {},
+): Promise<configList> {
+  store[0] = curConfig;
+  let i = 0;
+  while (curConfig.child) {
+    const childConfig = await curConfig.child();
+    store[--i] = childConfig;
+    curConfig = childConfig;
+  }
+  i = 0;
+  curConfig = store[0];
+  while (curConfig.parent) {
+    const parentConfig = await curConfig.parent();
+    store[++i] = parentConfig;
+    curConfig = parentConfig;
+  }
+  return store;
+}
+
+function mergeSequentialConfigs(configs: configList): ITunerConfig {
+  let mergedConfig: ITunerConfig | null = null;
+  const sortedKeys = Object.keys(configs).sort((a, b) => +b - +a);
+  // Проходимся по отсортированным ключам
+  for (const key of sortedKeys) {
+    const currentConfig = configs[Number(key)];
+
+    if (mergedConfig === null) {
+      mergedConfig = currentConfig;
+    } else {
+      mergedConfig = mergeConfigs(mergedConfig, currentConfig);
+    }
   }
 
-  const parentPath = resolve(configDirectory, child.parent as string);
-  const parent = (await import(parentPath)).default as ITunerConfig;
-  const newChild = mergeConfigs(parent, child);
-  if (!parent.parent) return newChild;
-  newChild.parent = parent.parent;
-  return combineParent(newChild, configDirectory);
+  return mergedConfig as ITunerConfig;
 }

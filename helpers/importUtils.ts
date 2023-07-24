@@ -25,7 +25,7 @@ export async function importFromStringHard(str: string) {
   }
 }
 
-async function importFromString(code: string) {
+export async function importFromString(code: string) {
   const module = await import(
     `data:application/typescript;base64,${btoa(code)}`
   );

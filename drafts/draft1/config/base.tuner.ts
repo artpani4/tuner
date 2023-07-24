@@ -6,9 +6,9 @@ export default {
     SOME_KEY: Env.getString.orDefault('some_key'),
   },
   config: {
-    featureA: {
+    featureCommon: {
       valueBase: true,
-      x: 1000,
+      x: 3,
     },
 
     featureB: {
