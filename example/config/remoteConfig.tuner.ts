@@ -1,9 +1,7 @@
-import { ITunerConfig } from '../typeFunc.ts';
-import Env from '../envFun.ts';
-
-export default {
+import Tuner from '../../mod.ts';
+export default Tuner.tune({
   env: {
-    PORT: Env.getNumber.orDefault(-100),
+    PORT: Tuner.Env.getNumber.orDefault(-100),
   },
   config: {
     featureCommon: {
@@ -18,4 +16,4 @@ export default {
     },
     loggingLevel: 'Clevel',
   },
-} as ITunerConfig;
+});

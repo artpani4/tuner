@@ -1,6 +1,14 @@
 {
   "version": "2",
   "remote": {
+    "http://localhost:8000/drafts/draft1/envFun.ts": "0ed4eae8c955d45346f0ec41a630aa4632fbcad39b86d29b0754fbad49708b95",
+    "http://localhost:8000/drafts/draft1/error.ts": "728f1a38badc0917b524c91e5cf1e7014152804741865097d400078fe7b2115c",
+    "http://localhost:8000/drafts/draft1/loadFun.ts": "962d39dfd26624c34f424e58efa409dc00ce8d2bc47dc2332c6410d692a5deb5",
+    "http://localhost:8000/drafts/draft1/mod.ts": "f0eca6e090fcef1bc41370aafa72b47d12d609e0b68c739841fc8950a9568b9d",
+    "http://localhost:8000/drafts/draft1/pathHelper.ts": "64d93543a8009955b930a1df0526feb1ce2e4a9ea56b0d66b6645fe7b88ddbdf",
+    "http://localhost:8000/drafts/draft1/tuner.ts": "38159dbfae4a95d97bacb66aea1cdf55dadd095dc95c4323064991ca9082794a",
+    "http://localhost:8000/drafts/draft1/tunerFun.ts": "8a2fa8de1f47440f33b5e13315a1bfd9a167c3a7b1f96b2516cae4c2ca22e68f",
+    "http://localhost:8000/drafts/draft1/type.ts": "0e7ed56414d84d743ae951a684f166ddaf3fec3a08627b5825150e6ec4f5055d",
     "https://deno.land/std@0.149.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
     "https://deno.land/std@0.149.0/_util/os.ts": "3b4c6e27febd119d36a416d7a97bd3b0251b77c88942c8f16ee5953ea13e2e49",
     "https://deno.land/std@0.149.0/fs/_util.ts": "2cf50bfb1081c2d5f2efec10ac19abbc2baf478e51cd1b057d0da2f30585b6ba",

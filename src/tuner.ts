@@ -1,8 +1,4 @@
-import {
-  getRemote,
-  IFilledTunerConfig,
-  ITunerConfig,
-} from './typeFunc.ts';
+import { IFilledTunerConfig, ITunerConfig } from './type.ts';
 import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
 import Load from './loadFun.ts';
 import { missingConfigNameEnv } from './error.ts';
@@ -14,23 +10,16 @@ export function getEnv(name: string): string {
   if (!value) {
     throw new missingConfigNameEnv(name);
   }
-  return value;
+  return value; 
 }
 
-export async function loadConfig(): Promise<void> {
+export async function loadConfig(): Promise<IFilledTunerConfig> {
   const configName = getEnv('config');
   const mainConfig =
-    await (await Load.fromConfigDir(`${configName}.tuner.ts`)());
+    await (await Load.local.configDir(`${configName}.tuner.ts`)());
   const configSequence = await inheritList(mainConfig);
   const mergedConfig = mergeSequentialConfigs(configSequence);
-  console.log(fillEnv(mergedConfig));
-  // const rawModule = await import(configPath);
-  // let rawConfig = rawModule.default as ITunerConfig;
-  // const finalParentCombined = await combineParent(
-  //   rawConfig,
-  //   configDir!,
-  // );
-  // console.log(finalParentCombined);
+  return fillEnv(mergedConfig);
 }
 
 function fillEnv(config: ITunerConfig): IFilledTunerConfig {
@@ -71,29 +60,6 @@ function mergeConfigs(
   return { ...child, env: mergedEnv, config: mergedConfig };
 }
 
-// async function combineParent(
-//   child: ITunerConfig,
-//   configDirectory: string,
-// ): Promise<ITunerConfig> {
-//   if (!child.parent) {
-//     return child;
-//   }
-
-//   const parentPath = resolve(configDirectory, child.parent as string);
-//   const parent = (await import(parentPath)).default as ITunerConfig;
-//   const newChild = mergeConfigs(parent, child);
-//   console.log(newChild);
-//   console.log('----------------');
-//   if (!parent.parent) return newChild;
-//   newChild.parent = parent.parent;
-//   return combineParent(newChild, configDirectory);
-// }
-
-// async function loadModule(ref: getRemote) {
-//   const remote = await ref();
-//   return (await ref()) as ITunerConfig;
-// }
-
 async function inheritList(
   curConfig: ITunerConfig,
   store: configList = {},
@@ -118,7 +84,6 @@ async function inheritList(
 function mergeSequentialConfigs(configs: configList): ITunerConfig {
   let mergedConfig: ITunerConfig | null = null;
   const sortedKeys = Object.keys(configs).sort((a, b) => +b - +a);
-  // Проходимся по отсортированным ключам
   for (const key of sortedKeys) {
     const currentConfig = configs[Number(key)];
 

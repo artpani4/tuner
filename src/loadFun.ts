@@ -1,7 +1,10 @@
-import { walk } from 'https://deno.land/std@0.164.0/fs/walk.ts';
-import { ITunerConfig } from './typeFunc.ts';
+import { ITunerConfig } from './type.ts';
 import { resolve } from 'https://deno.land/std@0.195.0/path/posix.ts';
 import { findDirectoryInCWD } from './pathHelper.ts';
+import {
+  getGitHubConfig,
+  getNotionConfig,
+} from '../provider/service.ts';
 
 const fromAbsolutePath = (path: string) => {
   return async () => {
@@ -15,7 +18,9 @@ const fromConfigDir = (path: string) => {
     if (configDir === null) {
       throw new Error('config directory not found');
     }
-    return (await import(`${resolve(configDir, path)}`))
+    const module = await import(`${resolve(configDir, path)}`);
+    // console.log(module);
+    return module
       .default as ITunerConfig;
   };
 };
@@ -25,11 +30,11 @@ const fromCWD = (path: string) => async () => {
     .default as ITunerConfig;
 };
 
-async function importFromString(code: string) {
+export async function importFromString(code: string) {
   const module = await import(
     `data:application/typescript;base64,${btoa(code)}`
   );
-  return module.default;
+  return module;
 }
 
 const remoteAsString = (cb: () => Promise<string>) => async () => {
@@ -41,12 +46,25 @@ const remoteAsModule =
     return (await cb()).default as ITunerConfig;
   };
 
+const notionLoad = (key: string, blockId: string) => () =>
+  getNotionConfig(key, blockId);
+
+const GithubLoad =
+  (key: string, owner: string, repo: string, path: string) => () =>
+    getGitHubConfig(key, owner, repo, path);
+
 const Load = {
-  fromAbsolutePath,
-  fromConfigDir,
-  fromCWD,
-  remoteAsString,
-  remoteAsModule,
+  local: {
+    absolutePath: fromAbsolutePath,
+    configDir: fromConfigDir,
+    cwd: fromCWD,
+  },
+  remote: {
+    import: remoteAsModule,
+    callbackStringReturned: remoteAsString,
+    notion: notionLoad,
+    github: GithubLoad,
+  },
 };
 
 export default Load;

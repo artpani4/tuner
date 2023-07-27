@@ -8,7 +8,9 @@ type envAsyncFun = (
 type loadAsyncFun = (path: string) =>
   | Promise<ITunerConfig>
   | ((
-    cb: () => Promise<{ default: ITunerConfig }>,
+    cb: () =>
+      | Promise<{ default: ITunerConfig }>
+      | Promise<ITunerConfig>,
   ) => Promise<ITunerConfig>);
 
 export interface ITunerConfig {

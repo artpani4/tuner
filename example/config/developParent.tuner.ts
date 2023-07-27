@@ -1,11 +1,8 @@
-import { ITunerConfig } from '../typeFunc.ts';
-import Env from '../envFun.ts';
-import load from '../loadFun.ts';
-
-export default {
-  parent: load.fromConfigDir('./base.tuner.ts'),
+import Tuner from '../../mod.ts';
+export default Tuner.tune({
+  parent: Tuner.Load.local.configDir('./base.tuner.ts'),
   env: {
-    DEVELOP_PARENT_SOME_KEY: Env.getString.orDefault('ololo'),
+    DEVELOP_PARENT_SOME_KEY: Tuner.Env.getString.orDefault('ololo'),
   },
 
   config: {
@@ -22,4 +19,4 @@ export default {
     loggingLevel: 'developParent',
     someProp: 'developParent',
   },
-} as ITunerConfig;
+});
