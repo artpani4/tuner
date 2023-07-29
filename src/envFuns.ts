@@ -1,4 +1,4 @@
-import { criticalError, missingConfigNameEnv } from './error.ts';
+import { CriticalError, MissingConfigNameEnv } from './errors.ts';
 import { getEnv } from './tuner.ts';
 
 const getStringOrDefault = (value: string) => {
@@ -6,10 +6,10 @@ const getStringOrDefault = (value: string) => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         return value;
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -19,10 +19,10 @@ const getNumberOrDefault = (value: number) => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         return value;
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -33,10 +33,10 @@ const getBooleanOrDefault = (value: boolean) => {
       return getEnv(envValue).toLowerCase() === 'true' ||
         getEnv(envValue) === '1';
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         return value;
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -46,10 +46,10 @@ const getStringOrExit = () => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         Deno.exit(1);
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -59,10 +59,10 @@ const getNumberOrExit = () => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         Deno.exit(1);
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -73,10 +73,10 @@ const getBooleanOrExit = () => {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         Deno.exit(1);
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -86,10 +86,10 @@ const getStringOrThrow = <T extends Error>(error: T) => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         throw error;
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -99,10 +99,10 @@ const getNumberOrThrow = <T extends Error>(error: T) => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         throw error;
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -113,10 +113,10 @@ const getBooleanOrThrow = <T extends Error>(error: T) => {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         throw error;
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -126,10 +126,10 @@ const getStringOrCompute = async (compute: () => Promise<string>) => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         return await compute();
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -139,10 +139,10 @@ const getNumberOrCompute = async (compute: () => Promise<number>) => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         return await compute();
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };
@@ -155,10 +155,10 @@ const getBooleanOrCompute = async (
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
     } catch (e: unknown) {
-      if (e instanceof missingConfigNameEnv) {
+      if (e instanceof MissingConfigNameEnv) {
         return await compute();
       }
-      throw new criticalError((e as { message: string }).message);
+      throw new CriticalError((e as { message: string }).message);
     }
   };
 };

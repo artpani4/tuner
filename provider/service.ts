@@ -1,9 +1,9 @@
 import Client from 'https://deno.land/x/notion_sdk@v2.2.3/src/Client.ts';
-import { Block } from './schema/block.ts';
+import { Block } from './scheme/block.ts';
 
 import axiod from 'https://deno.land/x/axiod/mod.ts';
-import { GithubRes } from './schema/githubRes.ts';
-import { importFromString } from '../src/loadFun.ts';
+import { GithubRes } from './scheme/githubRes.ts';
+import { importFromString } from '../src/loadFuns.ts';
 import { ITunerConfig } from '../src/type.ts';
 
 /**

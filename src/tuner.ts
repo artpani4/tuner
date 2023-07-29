@@ -1,16 +1,16 @@
 import { IFilledTunerConfig, ITunerConfig } from './type.ts';
 import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
-import Load from './loadFun.ts';
-import { missingConfigNameEnv } from './error.ts';
+import Load from './loadFuns.ts';
+import { MissingConfigNameEnv } from './errors.ts';
 
 type configList = { [key: number]: ITunerConfig };
 
 export function getEnv(name: string): string {
   const value = Deno.env.get(name) || dotenvConfig()[name];
   if (!value) {
-    throw new missingConfigNameEnv(name);
+    throw new MissingConfigNameEnv(name);
   }
-  return value; 
+  return value;
 }
 
 export async function loadConfig(): Promise<IFilledTunerConfig> {

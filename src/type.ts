@@ -1,11 +1,11 @@
 export type getRemote = () => Promise<ITunerConfig>;
 
-type envFun = (envValue: string) => string | number | boolean;
-type envAsyncFun = (
+type EnvFun = (envValue: string) => string | number | boolean;
+type EnvAsyncFun = (
   envValue: string,
 ) => Promise<string | number | boolean>;
 
-type loadAsyncFun = (path: string) =>
+type LoadAsyncFun = (path: string) =>
   | Promise<ITunerConfig>
   | ((
     cb: () =>
@@ -17,15 +17,15 @@ export interface ITunerConfig {
   parent?: () => Promise<ITunerConfig>;
   child?: () => Promise<ITunerConfig>;
   env?: {
-    [key: string]: envFun | envAsyncFun;
+    [key: string]: EnvFun | EnvAsyncFun;
   };
 
   config?: {};
 }
 
 export interface IFilledTunerConfig {
-  parent?: loadAsyncFun;
-  child?: loadAsyncFun;
+  parent?: LoadAsyncFun;
+  child?: LoadAsyncFun;
   env?: {
     [key: string]: string | number | boolean;
   };
