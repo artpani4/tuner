@@ -1,9 +1,9 @@
 import tune from './src/tunerFun.ts';
-import Env from './src/envFun.ts';
+import Env from './src/envFuns.ts';
 import { getEnv } from './src/tuner.ts';
-import Load from './src/loadFun.ts';
+import Load from './src/loaders.ts';
 import { loadConfig } from './src/tuner.ts';
-import { generateSchema } from './schema/generator.ts';
+import { generateSchema } from './src/scheme.ts';
 
 export default {
   tune,

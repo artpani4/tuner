@@ -3,7 +3,7 @@ import { Block } from './scheme/block.ts';
 
 import axiod from 'https://deno.land/x/axiod/mod.ts';
 import { GithubRes } from './scheme/githubRes.ts';
-import { importFromString } from '../src/loadFuns.ts';
+import { importFromString } from '../src/loaders.ts';
 import { ITunerConfig } from '../src/type.ts';
 
 /**

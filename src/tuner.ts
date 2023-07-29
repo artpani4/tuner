@@ -1,6 +1,6 @@
 import { IFilledTunerConfig, ITunerConfig } from './type.ts';
 import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
-import Load from './loadFuns.ts';
+import Load from './loaders.ts';
 import { MissingConfigNameEnv } from './errors.ts';
 
 type configList = { [key: number]: ITunerConfig };
