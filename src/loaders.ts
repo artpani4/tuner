@@ -4,7 +4,7 @@ import { findDirectoryInCWD } from './pathHelper.ts';
 import {
   getGitHubConfig,
   getNotionConfig,
-} from '../provider/service.ts';
+} from './provider/service.ts';
 
 const fromAbsolutePath = (path: string) => {
   return async () => {
