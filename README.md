@@ -2,231 +2,235 @@
 
 [![deno.land/x/tuner](https://shield.deno.dev/x/tuner)](https://deno.land/x/tuner)
 
-Tuner - модуль для управления конфигурациями проекта.
-Данные конфигурации описываются в виде .ts файла, содержащего объект с полями и значениями.
-Файлы могут храниться как в самом проекте(local файлы), так и удаленно (remote).
-Притом доступ к удаленным файлам можно осуществлять непосредственно передавая путь, либо прописать колбэк-фукнцию, которая извлекает нужные данные.
-
-Фактически, модуль предоставляет класс для менеджмента файлов конфига и несколько фукнций, обновляющие схемы конфига в реальном времени для удобной отладки и разработки.
+Tuner - модуль для управления конфигурациями проекта. Данные конфигурации описываются в виде **.ts** файла с экспортируемым объектом, который содержит перечисление _env_ переменных и полей конфига. Конфиги могут образовывать иерархию, наследуясь от родительских и перезаписываясь дочерними.
 
 ---
 
 ## Оглавление
 
-- [Tuner](#tuner)
-  - [Оглавление](#оглавление)
-  - [Генерация и обновление схемы](#-генерация-и-обновление-схемы)
-  - [Создание менеджера конфигов](#-создание-менеджера-конфигов)
-  - [Использование менеджера конфигов](#-использование-менеджера-конфигов)
-  - [Поддерживаемые сервисы](#-поддерживаемые-сервисы)
+## Простейший конфиг
 
-## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/sprout.png" alt="sprout"/> Генерация и обновление схемы
+Минимально конфиг может быть описан так:
 
-Для более комфортого обращения с конфигурацией интерфейсы объектов с данными конфига должны быть определены. Кроме того, при изменени конфига схема должна быть автоматически переписана.
-
-Пусть в папке _config_ имеется файл _localConfig.ts_
-
-> Требований к названию файлов конфига нет.
-
-Сам объект обязан содержать поле secrets с указанием названий секретных переменных.
-
-> secrets : {name: string}[]
-
-```ts
-// config/localConfig.ts
-const localSupabase = {
-  name: 'local',
-  secrets: [
-    {
-      name: 'API_KEY',
+```tsx
+// config/myConfig.tuner.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+export default Tuner.tune(
+  {
+    config: {
+      field1: 'value1',
+      field2: 100,
+      field3: true,
+      field4: ['минималистично', 'удобно', 'не правда ли?'],
     },
-    {
-      name: 'URL',
-    },
-  ],
-  timeoutToUpdate: 200,
-  mainTable: 'Wallets',
-  isSubscribtionOn: true,
-};
-
-export default localSupabase;
-```
-
-Для генерации схемы и типа этого объекта, а также отслеживания изменений этого файла используется _watchConfigFiles_:
-
-```ts
-// config/watcher.ts
-import { watchConfigFiles } from 'https://deno.land/x/tuner/mod.ts';
-
-const configFilePaths: ConfigFilePaths = {
-  filePaths: [
-    'config/localConfig.ts',
-    'config/prodConfig.ts',
-  ],
-  configType: 'supabaseConfig',
-};
-
-await watchConfigFiles(configFilePaths);
-```
-
-При запуске **deno run --allow-all config/watcher.ts** каждое измение любого из отслеживаемых файлов изменяет схему конфига(или генерирует ее при первом запуске/отсутствии файла схемы)
-
-Файл схемы конфига расположен в той же директории с названием _${configType}Schema.ts_
-
-> Выведенный тип и его импорт автоматически впишется в config/localConfig.ts, ...
-
-## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/hammer.png" alt="hammer"/> Создание менеджера конфигов
-
-```ts
-// config/manager.ts
-import {
-  SupabaseConfig,
-  SupabaseConfigSchema,
-} from '../config/supabaseConfigSchema.ts';
-import {
-  ConfigManager,
-  getNotionConfig,
-} from 'https://deno.land/x/tuner/mod.ts';
-
-const manager = new ConfigManager<
-  SupabaseConfig,
-  typeof SupabaseConfigSchema
->(
-  SupabaseConfigSchema,
+  },
 );
-
-// Добавление одного удаленного конфига
-manager.addRemoteConfigUrl(
-  'https://raw.githubusercontent.com/artpani4/configTest/main/configTest.ts',
-);
-
-// Добавление нескольких удаленных конфигов
-manager.addRemoteConfigUrls([
-  'http://example.com/supabaseConfigRu.ts',
-  'http://example.com/supabaseConfigEn.ts',
-]);
-
-// Добавление одного локального конфига
-manager.addLocalConfigUrl('config/localConfig.ts');
-
-// Добавление несокльких локальных конфигов
-manager.addLocalConfigUrls([
-  'config/localConfig.ts',
-  'config/prodConfig.ts',
-]);
-
-// Передаем callback, который возвращет строку с объектом
-// В данном случае getNotionConfig(key: string, blockId: string): Promise<string>
-manager.addRemoteProSource(async () => {
-  return await getNotionConfig(
-    getSecret('NOTION_KEY'),
-    'blockID',
-  );
-});
-
-// Если проийзодет какая-то ошибка при подгрузке какого-то из конфигов, то данный конфиг загрузится по умолчанию
-// Если проблема возникнет и с ним(или же конфига по умолчанию нет, а целевой конфиг недоступен) сработать исключение.
-await manager.setMainConfig('config/localConfig.ts', 'local');
-export default manager;
 ```
 
-> Конфиги, которые добавляются методами **.addRemoteConfigUrl** и **.addRemoteConfigUrls** прописываются таким же образом, как и локальные конфиги
->
-> Конфиги, подключаемые через **.addRemoteProSource** описываются без const ..., только сам объект конфига.
+> Функция _tune_ заботливо подскажет структуру ожидаемого объекта
 
-```ts
-// Конфиг будет подключен через addRemoteConfigUrl
-const prodSupabase = {
-  name: 'gitRaw',
-  secrets: [
-    {
-      name: 'API_KEY',
-    },
-    {
-      name: 'URL',
-    },
-  ],
-  timeoutToUpdate: 100,
-  mainTable: 'Invoices',
-  isSubscribtionOn: false,
-};
+Загрузка конфига и использование происходит так:
 
-export default prodSupabase;
-
-// Конфиг будет подключен через .addRemoteProSource
-{
-  name: 'notion',
-  secrets: [
-    {
-      name: 'API_KEY',
-    },
-    {
-      name: 'URL',
-    },
-  ],
-  timeoutToUpdate: 3000,
-  mainTable: 'Notion',
-  isSubscribtionOn: true,
-};
+```tsx
+// main.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+const cfg = await Tuner.use.loadConfig();
+console.log(cfg.config.field2); // 100
 ```
 
-## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/rocket.png" alt="rocket"/> Использование менеджера конфигов
-
-```ts
-// src/index.ts
-import { SupabaseConfig } from '../config/supabaseConfigSchema.ts';
-import manager from '../config/manager.ts';
-import { getSecret } from 'https://deno.land/x/tuner/mod.ts';
-
-try {
-  // Аргументом является предикат, который представляет собой функцию для фильтрации конфигов.
-  // В данном случае, функция проверяет, равно ли поле 'name' в конфигурации значению,  полученному из переменной окружения 'name'.
-  const config = await manager.loadConfig(
-    (config: SupabaseConfig) => config.name === Deno.env.get('name'),
-  );
-  console.log(config);
-  // Извлечение сикретов
-  const dbApiKey = getSecret('API_KEY');
-  const dbUrl = getSecret('URL');
-} catch (e) {
-  console.log(e);
-}
-```
-
-При запуске сикреты можно передать непосредственно
+__При запуске обязательно наличие _env_ переменной _config_, ее значение - название файла конфига до _.tuner.ts,__ в данном примере это myConfig._
 
 ```bash
-API_KEY=your_key URL=https://your_db_url.supabase.co deno run --allow-all index.ts
+config=myConfig deno run --allow-all main.ts
 ```
 
-Либо создать файл .env
+## Конфиг с описанием env-переменных
 
-```env
-API_KEY=your_key
-URL=https://your_db_url.supabase.co
+В Tuner имеется возможность описать типы переменных окружения и поведения при их отсутствии:
+
+- значение по умолчанию
+- завершение процесса
+- генерация исключения
+- вычисление на лету
+
+Например, так:
+
+```tsx
+// config/myConfig.tuner.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+export default Tuner.tune(
+  {
+    env: {
+      // Использовать Значение по умолчанию
+      env1: Tuner.Env.getString.orDefault('defalut value1'),
+      env2: Tuner.Env.getNumber.orDefault(100),
+      env3: Tuner.Env.getBoolean.orDefault(true),
+      // Проигнорировать отсуствие переменной
+      env4: Tuner.Env.getString.orNothing(),
+      env5: Tuner.Env.getNumber.orNothing(),
+      env6: Tuner.Env.getBoolean.orNothing(),
+      // Завершенить процесс
+      env7: Tuner.Env.getString.orExit(
+        'сообщение об ошибке, необязательно',
+      ),
+      env8: Tuner.Env.getNumber.orExit(
+        'выведет в консоль перед выходом',
+      ),
+      env9: Tuner.Env.getBoolean.orExit(),
+      // Сгенерировать исключение
+      env10: Tuner.Env.getString.orThrow(new Error('ошибка')),
+      env11: Tuner.Env.getNumber.orThrow(new Error()),
+      env12: Tuner.Env.getBoolean.orThrow(new Error()),
+      // Вычисленить данных по переданному колбэку
+      //(может быть асинхронным, если данные нужно получить с диска или удаленно, например)
+      env13: Tuner.Env.getString.orCompute(() => 'computed value1'),
+      env14: Tuner.Env.getNumber.orAsyncCompute(() =>
+        new Promise(() => 100)
+      ),
+    },
+    config: {
+      field1: 'value1',
+      field2: 100,
+      field3: true,
+      field4: ['минималистично', 'удобно', 'не правда ли?'],
+    },
+  },
+);
 ```
 
-Если сикрет не находится, генерируется исключение.
+> **Разумеется, можно просто указать значение-примитив, вроде env1: 100**
 
-## <img width="30" height="30" src="https://img.icons8.com/ultraviolet/40/puzzle.png" alt="puzzle"/> Поддерживаемые сервисы
+## Объединение конфигов
 
-Добавление колбэка для подгрузки конфига ситуативно, но бывает полезно во многих случаях.
+Tuner позволяет “собрать” конфиг, используя другие конфиги, нужно только выстроить из них цепочку:
 
-На данный момент доступны интеграции с:
+- Текущий конфиг дополнится всеми полями родительского, при этом сохранит свои значения
+- Текущий конфиг дополнится всеми полями дочернего, при этом совпадающие поля будут переписаны значениями из дочернего конфига
+- Значения-фукнции, используемые для описания env-переменных также подчиняются этим правилам
 
-- Notion(блок **/code**)
-- GitHub(файл в репозитории)
+```mermaid
+flowchart LR;
+subgraph W[" "]
+direction BT
+    base["base\nРодительский конфиг\n{a: 400, b: 401, c:402}"]
+    rab["Рабочий конфиг\n{a: 300, b: 301}\nChild:A\nparent:base"]
+    A["А\nДочерний конфиг рабочего\n{b: 200, e:201}\nChild:B"]
+    B["B\nДочерний конфиг A\n{a: 100, d: 101}"]
+end
+style rab stroke:#300,stroke-width:6px
+B-->|"Добавить: a=100,d=101"|A-->|"Переписать a->100, b->200\nДобавить: d=101,e=201"|rab-->|"Переписать: a->100,b->200\nДобавить: d=101, e=201"|base
+W-->|Результат|F["{a: 100, b: 200, c:402, d: 101, e:201}"]
+```
 
-```ts
-// Notion
-// blockId расположен после # в ссылке на блок
-getNotionConfig(key: string, blockId: string)
+> При этом, например, конфигу В необязательно указывать А в качестве родительского.
 
-// GihHub
-getGitHubConfig(
-  apiKey: string,
-  owner: string,
-  repo: string,
-  filePath: string,
-)
+Реализация:
+
+```tsx
+// config/develop.tuner.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+export default Tuner.tune({
+  child: Tuner.Load.local.configDir('a.tuner.ts'),
+  parent: Tuner.Load.local.configDir('base.tuner.ts'),
+  config: {
+    a: 300,
+    b: 301,
+  },
+});
+
+//config/base.tuner.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+export default Tuner.tune({
+  config: { a: 400, b: 401, c: 402 },
+});
+
+//config/a.tuner.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+export default Tuner.tune({
+  child: Tuner.Load.local.configDir('b.tuner.ts'),
+  config: {
+    b: 200,
+    e: 201,
+  },
+});
+
+//config/b.tuner.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+export default Tuner.tune({
+  config: { a: 100, d: 101 },
+});
+
+//main.ts
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
+const cfg = await Tuner.use.loadConfig();
+console.log(cfg);
+//{ config: { a: 100, b: 200, c: 402, e: 201, d: 101 }, env: {} }
+```
+
+_Tuner.Load_ предлагает локальный и удаленный вариант подключения конфига.
+
+Tuner.Load.local
+
+| Функция                   | Вернет объект конфига из файла по …                 |
+| ------------------------- | --------------------------------------------------- |
+| absolutePath(path:string) | …указанному полному пути до него                    |
+| configDir(path:string)    | …пути, относительно директории с названием “config” |
+| cwd(path:string)          | …относительному пути в директории проекта           |
+
+---
+
+Tuner.Load.remote
+
+| Фукнция                                                         | Описание                                                                                                                    | Пример (пусть файл конфигурации лежит по адресу http://some_server/b.tuner.ts)                       |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| import(path:string)                                             | Работает, как обычный импорт                                                                                                | child: Tuner.Load.remote.import(”http://some_server/b.tuner.ts”)                                     |
+| callbackReturnModule(cb: () ⇒ Promise<{default: ITunerConfig}>) | Принимает колбэк, который вернет промис с импортируемым модулем                                                             | child: Tuner.Load.remote.callbackReturnModule(() ⇒ import(”http://some_server/b.tuner.ts”))          |
+| callbackReturnString((cb: () => Promise<string>))               | Принимает колбэк, который вернет промис с текстом модуля в виде строки (забираем код конфига из форм, блоков в Notion и тд) | child: Tuner.Load.remote.callbackReturnString(() ⇒ someFetchingFunctionStringReturned(options: {…})) |
+
+Кроме того, _Tuner.Load.remote_ имеет встроенные интеграции с различными сервисами через _Tuner.Load.remote.providers:_
+
+- notion(key:string, blockUrl:string) - отдаем ключ авторизации(_Tuner.getEnv_ поможет найти env-переменную в окружении или .env файле) и ссылку на блок в Notion, в котором описан модуль конфигурации
+- github(key: string, owner: string, repo: string, filePath: string) - ключ, ник держателя репо, название репо и путь до файла.
+
+## Генерация схемы конфига
+
+Для удобной работы с объектом конфигурации во время разработки рекомендуется сгенерировать тип объекта.
+
+_Tuner.use.generateSchema(**obj**_: ObjectType, _**variableName**_: string, _**filePath**_: string) сформирует файл по пути _**filePath**_ со схемой объекта _**obj**_ и экспортирует тип с названием _**variableName**_, переведя первую букву в заглавный регистр.
+
+```tsx
+const cfg = await Tuner.use.loadConfig();
+Tuner.use.generateSchema(
+  cfg,
+  'config',
+  'config/configSchema.ts',
+);
+```
+
+Файл config/configSchema.ts
+
+```tsx
+import { z } from 'https://deno.land/x/zod/mod.ts';
+
+export const configSchema = z.object({
+  config: z.object({
+    a: z.number(),
+    b: z.number(),
+    c: z.number(),
+    e: z.number(),
+    d: z.number(),
+  }),
+  env: z.object({}),
+});
+
+export type Config = z.infer<typeof configSchema>;
+
+//├─ config
+//│  ├─ a
+//│  ├─ b
+//│  ├─ c
+//│  ├─ e
+//│  └─ d
+//└─ env
+//
 ```
