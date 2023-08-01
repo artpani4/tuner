@@ -14,7 +14,7 @@ Tuner - модуль для управления конфигурациями п
 
 ```tsx
 // config/myConfig.tuner.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 export default Tuner.tune(
   {
     config: {
@@ -33,7 +33,7 @@ export default Tuner.tune(
 
 ```tsx
 // main.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 const cfg = await Tuner.use.loadConfig();
 console.log(cfg.config.field2); // 100
 ```
@@ -57,7 +57,7 @@ config=myConfig deno run --allow-all main.ts
 
 ```tsx
 // config/myConfig.tuner.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 export default Tuner.tune(
   {
     env: {
@@ -128,7 +128,7 @@ W-->|Результат|F["{a: 100, b: 200, c:402, d: 101, e:201}"]
 
 ```tsx
 // config/develop.tuner.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 export default Tuner.tune({
   child: Tuner.Load.local.configDir('a.tuner.ts'),
   parent: Tuner.Load.local.configDir('base.tuner.ts'),
@@ -139,13 +139,13 @@ export default Tuner.tune({
 });
 
 //config/base.tuner.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 export default Tuner.tune({
   config: { a: 400, b: 401, c: 402 },
 });
 
 //config/a.tuner.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 export default Tuner.tune({
   child: Tuner.Load.local.configDir('b.tuner.ts'),
   config: {
@@ -155,13 +155,13 @@ export default Tuner.tune({
 });
 
 //config/b.tuner.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 export default Tuner.tune({
   config: { a: 100, d: 101 },
 });
 
 //main.ts
-import Tuner from 'https://deno.land/x/tuner';
+import Tuner from 'https://deno.land/x/tuner/mod.ts';
 const cfg = await Tuner.use.loadConfig();
 console.log(cfg);
 //{ config: { a: 100, b: 200, c: 402, e: 201, d: 101 }, env: {} }
