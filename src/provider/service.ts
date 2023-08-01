@@ -3,8 +3,8 @@ import { Block } from './scheme/block.ts';
 
 import axiod from 'https://deno.land/x/axiod/mod.ts';
 import { GithubRes } from './scheme/githubRes.ts';
-import { importFromString } from '../src/loaders.ts';
-import { ITunerConfig } from '../src/type.ts';
+import { ITunerConfig } from '../type.ts';
+import { importFromString } from '../loaders.ts';
 
 /**
 Получает конфигурацию из репозитория GitHub с использованием предоставленного API-ключа, владельца репозитория, названия репозитория и пути к файлу.
@@ -48,15 +48,18 @@ export async function getGitHubConfig(
  * Получает конфигурацию из блока Notion с использованием предоставленного ключа и идентификатора блока.
  *
  * @param key - Ключ аутентификации для доступа к API Notion.
- * @param blockId - Идентификатор блока Notion, содержащего конфигурацию.
- * @returns Полученная конфигурация в формате JSON.
+ * @param blockURl - URL блока Notion, содержащего конфигурацию.
+ * @returns Промис с ITunerConfig
  * @throws Ошибка при возникновении проблем при получении файла из Notion.
  */
-export async function getNotionConfig(key: string, blockId: string) {
+export async function getNotionConfig(key: string, blockUrl: string) {
   try {
     const notion = new Client({
       auth: key,
     });
+    const blockId = getBlockIdByURL(blockUrl);
+    console.log(blockId);
+    if (blockId === null) throw new Error('Invalid block');
     const response = await notion.blocks.retrieve({
       block_id: blockId,
     }) as Block;
@@ -71,5 +74,14 @@ export async function getNotionConfig(key: string, blockId: string) {
       error,
     );
     throw error;
+  }
+}
+
+function getBlockIdByURL(url: string): string | null {
+  const match = url.match(/#([\w-]+)$/);
+  if (match && match[1]) {
+    return match[1];
+  } else {
+    return null;
   }
 }

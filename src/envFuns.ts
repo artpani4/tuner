@@ -41,12 +41,15 @@ const getBooleanOrDefault = (value: boolean) => {
   };
 };
 
-const getStringOrExit = () => {
+const getStringOrExit = (exitMessage?: string) => {
   return (envValue: string) => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
       if (e instanceof MissingConfigNameEnv) {
+        if (exitMessage) {
+          console.error(exitMessage);
+        }
         Deno.exit(1);
       }
       throw new CriticalError((e as { message: string }).message);
@@ -54,12 +57,15 @@ const getStringOrExit = () => {
   };
 };
 
-const getNumberOrExit = () => {
+const getNumberOrExit = (exitMessage?: string) => {
   return (envValue: string) => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
       if (e instanceof MissingConfigNameEnv) {
+        if (exitMessage) {
+          console.error(exitMessage);
+        }
         Deno.exit(1);
       }
       throw new CriticalError((e as { message: string }).message);
@@ -67,13 +73,16 @@ const getNumberOrExit = () => {
   };
 };
 
-const getBooleanOrExit = () => {
+const getBooleanOrExit = (exitMessage?: string) => {
   return (envValue: string) => {
     try {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
     } catch (e: unknown) {
       if (e instanceof MissingConfigNameEnv) {
+        if (exitMessage) {
+          console.error(exitMessage);
+        }
         Deno.exit(1);
       }
       throw new CriticalError((e as { message: string }).message);
@@ -121,7 +130,9 @@ const getBooleanOrThrow = <T extends Error>(error: T) => {
   };
 };
 
-const getStringOrCompute = async (compute: () => Promise<string>) => {
+const getStringOrAsyncCompute = (
+  compute: () => Promise<string>,
+) => {
   return async (envValue: string) => {
     try {
       return getEnv(envValue);
@@ -134,7 +145,9 @@ const getStringOrCompute = async (compute: () => Promise<string>) => {
   };
 };
 
-const getNumberOrCompute = async (compute: () => Promise<number>) => {
+const getNumberOrAsyncCompute = (
+  compute: () => Promise<number>,
+) => {
   return async (envValue: string) => {
     try {
       return Number(getEnv(envValue));
@@ -147,7 +160,7 @@ const getNumberOrCompute = async (compute: () => Promise<number>) => {
   };
 };
 
-const getBooleanOrCompute = async (
+const getBooleanOrAsyncCompute = (
   compute: () => Promise<boolean>,
 ) => {
   return async (envValue: string) => {
@@ -163,25 +176,77 @@ const getBooleanOrCompute = async (
   };
 };
 
+const getStringOrCompute = (
+  compute: () => string,
+) => {
+  return (envValue: string) => {
+    try {
+      return getEnv(envValue);
+    } catch (e: unknown) {
+      if (e instanceof MissingConfigNameEnv) {
+        return compute();
+      }
+      throw new CriticalError((e as { message: string }).message);
+    }
+  };
+};
+
+const getNumberOrCompute = (
+  compute: () => number,
+) => {
+  return (envValue: string) => {
+    try {
+      return Number(getEnv(envValue));
+    } catch (e: unknown) {
+      if (e instanceof MissingConfigNameEnv) {
+        return compute();
+      }
+      throw new CriticalError((e as { message: string }).message);
+    }
+  };
+};
+
+const getBooleanOrCompute = (
+  compute: () => boolean,
+) => {
+  return (envValue: string) => {
+    try {
+      const val = getEnv(envValue);
+      return val.toLowerCase() === 'true' || val === '1';
+    } catch (e: unknown) {
+      if (e instanceof MissingConfigNameEnv) {
+        return compute();
+      }
+      throw new CriticalError((e as { message: string }).message);
+    }
+  };
+};
+
 const getNumber = {
   orDefault: getNumberOrDefault,
   orExit: getNumberOrExit,
+  orAsyncCompute: getNumberOrAsyncCompute,
   orCompute: getNumberOrCompute,
   orThrow: getNumberOrThrow,
+  orNothing: () => () => {},
 };
 
 const getString = {
   orDefault: getStringOrDefault,
   orExit: getStringOrExit,
+  orAsyncCompute: getStringOrAsyncCompute,
   orCompute: getStringOrCompute,
   orThrow: getStringOrThrow,
+  orNothing: () => () => {},
 };
 
 const getBoolean = {
   orDefault: getBooleanOrDefault,
   orExit: getBooleanOrExit,
+  orAsyncCompute: getBooleanOrAsyncCompute,
   orCompute: getBooleanOrCompute,
   orThrow: getBooleanOrThrow,
+  orNothing: () => () => {},
 };
 
-export default { getString, getNumber, getBoolean, getEnv };
+export default { getString, getNumber, getBoolean };
