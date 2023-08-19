@@ -27,12 +27,11 @@ const fromAbsolutePath = (path: string) => {
 const fromConfigDir = (path: string) => {
   return async () => {
     const configDir = await findDirectoryInCWD('config');
-    console.log(`ConfigDir: ${configDir}`);
+
     if (configDir === null) {
       throw new Error('config directory not found');
     }
-    console.log(path);
-    console.log(resolve(configDir, path));
+
     const module = await import(
       `file:///${resolve(configDir, path)}`
     );
