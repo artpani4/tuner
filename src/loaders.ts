@@ -33,7 +33,9 @@ const fromConfigDir = (path: string) => {
     }
     console.log(path);
     console.log(resolve(configDir, path));
-    const module = await import(`${resolve(configDir, path)}`);
+    const module = await import(
+      `file:///${resolve(configDir, path)}`
+    );
     return module
       .default as ITunerConfig;
   };
