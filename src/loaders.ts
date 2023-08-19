@@ -27,10 +27,12 @@ const fromAbsolutePath = (path: string) => {
 const fromConfigDir = (path: string) => {
   return async () => {
     const configDir = await findDirectoryInCWD('config');
-    console.log(configDir);
+    console.log(`ConfigDir: ${configDir}`);
     if (configDir === null) {
       throw new Error('config directory not found');
     }
+    console.log(path);
+    console.log(resolve(configDir, path));
     const module = await import(`${resolve(configDir, path)}`);
     return module
       .default as ITunerConfig;
