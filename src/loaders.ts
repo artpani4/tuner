@@ -27,11 +27,11 @@ const fromAbsolutePath = (path: string) => {
 const fromConfigDir = (path: string) => {
   return async () => {
     const configDir = await findDirectoryInCWD('config');
+    console.log(configDir);
     if (configDir === null) {
       throw new Error('config directory not found');
     }
     const module = await import(`${resolve(configDir, path)}`);
-    // console.log(module);
     return module
       .default as ITunerConfig;
   };
@@ -43,7 +43,7 @@ const fromConfigDir = (path: string) => {
  * @returns {Promise<() => Promise<ITunerConfig>>} Возвращает функцию, которая возвращает объект с конфигурацией.
  */
 const fromCWD = (path: string) => async () => {
-  return (await import(resolve(Deno.cwd(), path)))
+  return (await import(resolve('./', path)))
     .default as ITunerConfig;
 };
 
@@ -59,20 +59,34 @@ export async function importFromString(code: string) {
   return module;
 }
 
+/**
+ * Загружает конфигурацию из строки с типом TypeScript, полученной с помощью функции обратного вызова.
+ * @param cb Функция обратного вызова, которая возвращает промис с текстом кода конфигурации в формате TypeScript.
+ * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
+ */
 const remoteAsString = (cb: () => Promise<string>) => async () => {
   return await importFromString(await cb()) as ITunerConfig;
 };
 
+/**
+ * Загружает конфигурацию из модуля с типом TypeScript, полученного с помощью функции обратного вызова.
+ * @param cb Функция обратного вызова, которая возвращает промис с объектом конфигурации в формате { default: ITunerConfig }.
+ * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
+ */
 const remoteAsModule =
   (cb: () => Promise<{ default: ITunerConfig }>) => async () => {
     return (await cb()).default as ITunerConfig;
   };
 
+/**
+ * Загружает конфигурацию из файла с указанным источником.
+ * @param source Путь к файлу с конфигурацией.
+ * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
+ */
 const remoteByImport = (source: string) => async () => {
   const module = await import(source);
   return module.default as ITunerConfig;
 };
-// (await import(source)).default as ITunerConfig;
 
 /**
  * Функция-фабрика для получения конфигурации из Notion с использованием предоставленного ключа и идентификатора блока.

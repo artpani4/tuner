@@ -26,5 +26,5 @@ export async function findDirectory(
 export async function findDirectoryInCWD(
   name: string,
 ): Promise<string | null> {
-  return findDirectory(Deno.cwd(), name);
+  return findDirectory('./', name);
 }

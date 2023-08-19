@@ -5,7 +5,7 @@ export default Tuner.tune({
   //     'http://localhost:8000/example/config/b.tuner.ts',
   //   ),
   env: {
-    someField: 100,
+    someField: Tuner.Env.getString.orDefault("effe"),
   },
   child: Tuner.Load.remote.providers.notion(
     Tuner.getEnv('NOTION_KEY'),
