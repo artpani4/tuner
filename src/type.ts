@@ -14,22 +14,31 @@ type LoadAsyncFun = (path: string) =>
       | Promise<ITunerConfig>,
   ) => Promise<ITunerConfig>);
 
+type ParentOrChild = {
+  fun: () => Promise<ITunerConfig>;
+  args: any;
+};
+
+// () => Promise<{ fun: ITunerConfig; args: string; }>
+
 export interface ITunerConfig {
-  parent?: () => Promise<ITunerConfig>;
-  child?: () => Promise<ITunerConfig>;
+  parent?: ParentOrChild;
+  child?: ParentOrChild;
   env?: {
     [key: string]: EnvFun | EnvAsyncFun | Primitive;
   };
 
   config?: {};
+  watch?: number;
 }
 
 export interface IFilledTunerConfig {
-  parent?: LoadAsyncFun;
-  child?: LoadAsyncFun;
+  parent?: ParentOrChild;
+  child?: ParentOrChild;
   env?: {
     [key: string]: Primitive;
   };
 
   config?: {};
+  watch?: number;
 }

@@ -2,8 +2,20 @@ import { IFilledTunerConfig, ITunerConfig } from './type.ts';
 import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
 import Load from './loaders.ts';
 import { MissingConfigNameEnv } from './errors.ts';
+import { Ward, WardEventData } from './ward/ward.ts';
+import { eventEmitter } from './ward/eventManager.ts';
 
-type configList = { [key: number]: ITunerConfig };
+type ConfigList = {
+  [key: number]: {
+    config: ITunerConfig;
+    delivery: () =>
+      | ITunerConfig
+      | Promise<ITunerConfig>
+      | IFilledTunerConfig
+      | Promise<IFilledTunerConfig>;
+    // args?: any;
+  };
+};
 
 /**
  * Получает значение переменной окружения по указанному имени.
@@ -27,10 +39,12 @@ export function getEnv(name: string): string {
 export async function loadConfig(): Promise<IFilledTunerConfig> {
   const configName = getEnv('config');
   const mainConfig =
-    await (await Load.local.configDir(`${configName}.tuner.ts`)());
+    await (await Load.local.configDir(`${configName}.tuner.ts`)
+      .fun());
   const configSequence = await inheritList(mainConfig);
+  // await setWatching(eventManager, configSequence);
   const mergedConfig = mergeSequentialConfigs(configSequence);
-  return fillEnv(mergedConfig);
+  return fillEnv(await mergedConfig);
 }
 
 /**
@@ -96,20 +110,35 @@ function mergeConfigs(
  */
 async function inheritList(
   curConfig: ITunerConfig,
-  store: configList = {},
-): Promise<configList> {
-  store[0] = curConfig;
+  store: ConfigList = {},
+): Promise<ConfigList> {
+  //TODO
+  store[0] = {
+    config: curConfig,
+    delivery: async () => {
+      return await Load.local.configDir(
+        `${getEnv('config')}.tuner.ts`,
+      ).fun();
+    },
+  };
   let i = 0;
   while (curConfig.child) {
-    const childConfig = await curConfig.child();
-    store[--i] = childConfig;
+    const childConfig = await curConfig.child.fun();
+    store[--i] = {
+      config: childConfig,
+      delivery: curConfig.child.fun,
+    };
     curConfig = childConfig;
   }
   i = 0;
-  curConfig = store[0];
+  curConfig = store[0].config;
   while (curConfig.parent) {
-    const parentConfig = await curConfig.parent();
-    store[++i] = parentConfig;
+    // console.log(curConfig.parent);
+    const parentConfig = await curConfig.parent.fun();
+    store[++i] = {
+      config: parentConfig,
+      delivery: curConfig.parent.fun,
+    };
     curConfig = parentConfig;
   }
   return store;
@@ -120,12 +149,27 @@ async function inheritList(
  * @param configs Массив с последовательностью конфигураций.
  * @returns Объединенная конфигурация.
  */
-function mergeSequentialConfigs(configs: configList): ITunerConfig {
+async function mergeSequentialConfigs(
+  configs: ConfigList,
+): Promise<ITunerConfig> {
   let mergedConfig: ITunerConfig | null = null;
   const sortedKeys = Object.keys(configs).sort((a, b) => +b - +a);
   for (const key of sortedKeys) {
-    const currentConfig = configs[Number(key)];
-
+    // console.log(configs[Number(key)].config);
+    const currentConfig = configs[Number(key)].config;
+    if (currentConfig.watch) {
+      const ward = new Ward<IFilledTunerConfig>()
+        .target.data.remote(
+          configs[Number(key)].delivery as () => Promise<
+            IFilledTunerConfig
+          >,
+        )
+        .time(currentConfig.watch)
+        .ifChangedThen.emitEvent('CONFIG_CHANGE')
+        .stopIf.eventTriggered('STOP_ALL_WARDS')
+        .build();
+      await ward.start();
+    }
     if (mergedConfig === null) {
       mergedConfig = currentConfig;
     } else {
@@ -135,3 +179,17 @@ function mergeSequentialConfigs(configs: configList): ITunerConfig {
 
   return mergedConfig as ITunerConfig;
 }
+
+export async function onChangeTrigger<T>(
+  cb: (data: WardEventData<T>) => void | Promise<void>,
+) {
+  eventEmitter.addListener('CONFIG_CHANGE', cb);
+  // eventEmitter.emit('STOP_ALL_WARDS');
+}
+
+// function setWatching(
+//   manager: EventManager,
+//   config: ITunerConfig,
+//   delivery: () => ITunerConfig | Promise<ITunerConfig>,
+// ) {
+// }

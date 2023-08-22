@@ -30,7 +30,6 @@ export async function getGitHubConfig(
         },
       },
     )) as unknown as GithubRes;
-    // console.log(atob(response.data.content));
     const convertedText = await importFromString(
       atob(response.data.content),
     ) as { default: ITunerConfig };
@@ -58,7 +57,6 @@ export async function getNotionConfig(key: string, blockUrl: string) {
       auth: key,
     });
     const blockId = getBlockIdByURL(blockUrl);
-    console.log(blockId);
     if (blockId === null) throw new Error('Invalid block');
     const response = await notion.blocks.retrieve({
       block_id: blockId,

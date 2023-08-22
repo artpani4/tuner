@@ -13,8 +13,11 @@ import {
  */
 
 const fromAbsolutePath = (path: string) => {
-  return async () => {
-    return (await import(path)).default as ITunerConfig;
+  return {
+    fun: async () => {
+      return (await import(path)).default as ITunerConfig;
+    },
+    args: path,
   };
 };
 
@@ -25,18 +28,21 @@ const fromAbsolutePath = (path: string) => {
  * @throws Error если директория "config" не найдена.
  */
 const fromConfigDir = (path: string) => {
-  return async () => {
-    const configDir = await findDirectoryInCWD('config');
+  return {
+    fun: async () => {
+      const configDir = await findDirectoryInCWD('config');
 
-    if (configDir === null) {
-      throw new Error('config directory not found');
-    }
+      if (configDir === null) {
+        throw new Error('config directory not found');
+      }
 
-    const module = await import(
-      `file:///${resolve(configDir, path)}`
-    );
-    return module
-      .default as ITunerConfig;
+      const module = await import(
+        `file:///${resolve(configDir, path)}?version=${Math.random()}`
+      );
+      return module
+        .default as ITunerConfig;
+    },
+    args: path,
   };
 };
 
@@ -45,9 +51,13 @@ const fromConfigDir = (path: string) => {
  * @param path Относительный путь к файлу с конфигурацией в текущей рабочей директории.
  * @returns {Promise<() => Promise<ITunerConfig>>} Возвращает функцию, которая возвращает объект с конфигурацией.
  */
-const fromCWD = (path: string) => async () => {
-  return (await import(resolve('./', path)))
-    .default as ITunerConfig;
+const fromCWD = (path: string) => {
+  return {
+    fun: async () =>
+      (await import(resolve('./', path)))
+        .default as ITunerConfig,
+    args: path,
+  };
 };
 
 /**
@@ -67,8 +77,13 @@ export async function importFromString(code: string) {
  * @param cb Функция обратного вызова, которая возвращает промис с текстом кода конфигурации в формате TypeScript.
  * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
  */
-const remoteAsString = (cb: () => Promise<string>) => async () => {
-  return await importFromString(await cb()) as ITunerConfig;
+const remoteAsString = (cb: () => Promise<string>) => {
+  return {
+    fun: async () => {
+      return await importFromString(await cb()) as ITunerConfig;
+    },
+    args: cb.arguments,
+  };
 };
 
 /**
@@ -76,29 +91,43 @@ const remoteAsString = (cb: () => Promise<string>) => async () => {
  * @param cb Функция обратного вызова, которая возвращает промис с объектом конфигурации в формате { default: ITunerConfig }.
  * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
  */
-const remoteAsModule =
-  (cb: () => Promise<{ default: ITunerConfig }>) => async () => {
-    return (await cb()).default as ITunerConfig;
+const remoteAsModule = (
+  cb: () => Promise<{ default: ITunerConfig }>,
+) => {
+  return {
+    fun: async () => {
+      return (await cb()).default as ITunerConfig;
+    },
+    args: cb.arguments,
   };
+};
 
 /**
  * Загружает конфигурацию из файла с указанным источником.
  * @param source Путь к файлу с конфигурацией.
  * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
  */
-const remoteByImport = (source: string) => async () => {
-  const module = await import(source);
-  return module.default as ITunerConfig;
+const remoteByImport = (source: string) => {
+  return {
+    fun: async () => {
+      const module = await import(source);
+      return module.default as ITunerConfig;
+    },
+    args: source,
+  };
 };
-
 /**
  * Функция-фабрика для получения конфигурации из Notion с использованием предоставленного ключа и идентификатора блока.
  * @param key Ключ аутентификации для доступа к API Notion.
  * @param blockUrl URL блока Notion, содержащего конфигурацию.
  * @returns {() => Promise<ITunerConfig>} Возвращает функцию, которая возвращает объект с конфигурацией из Notion.
  */
-const notionLoad = (key: string, blockUrl: string) => () =>
-  getNotionConfig(key, blockUrl);
+const notionLoad = (key: string, blockUrl: string) => {
+  return {
+    fun: () => getNotionConfig(key, blockUrl),
+    args: [key, blockUrl],
+  };
+};
 
 /**
  * Функция-фабрика для получения конфигурации из репозитория GitHub с использованием предоставленного API-ключа, владельца репозитория, названия репозитория и пути к файлу.
@@ -108,9 +137,17 @@ const notionLoad = (key: string, blockUrl: string) => () =>
  * @param path Путь к файлу в репозитории GitHub.
  * @returns {() => Promise<ITunerConfig>} Возвращает функцию, которая возвращает объект с конфигурацией из репозитория GitHub.
  */
-const GithubLoad =
-  (key: string, owner: string, repo: string, path: string) => () =>
-    getGitHubConfig(key, owner, repo, path);
+const GithubLoad = (
+  key: string,
+  owner: string,
+  repo: string,
+  path: string,
+) => {
+  return {
+    fun: () => getGitHubConfig(key, owner, repo, path),
+    args: [key, owner, repo, path],
+  };
+};
 
 /**
  * Загрузчик конфигурации, предоставляющий функции для получения конфигурации из различных источников.
