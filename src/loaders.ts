@@ -44,7 +44,7 @@ const configDir = <T extends ITunerConfig>(
   fun: async (): Promise<T> => {
     try {
       const modulePath = resolve(path) + `?version=${Math.random()}`;
-      const module = await import(`${modulePath}`);
+      const module = await import(modulePath);
       log.inf(
         `Successfully loaded config from config directory: ${modulePath}`,
       );
