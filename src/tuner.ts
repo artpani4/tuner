@@ -74,6 +74,7 @@ export async function loadConfig<T>(
       `file:///${resolvedPath}`,
     )
       .fun();
+    log.trc(`Путь конфига: file:///${resolvedPath}`);
     const configSequence = await inheritList(
       mainConfig,
       {},
