@@ -1,14 +1,6 @@
-// import Tuner from '../mod.ts';
-// import { Config } from './config/schema.ts';
-// const config = (await Tuner.use.loadConfig()) as Config;
-// console.log(config);
-
-// config/develop.tuner.ts
 import Tuner from '../mod.ts';
-export default Tuner.tune({
-  child: Tuner.Load.local.configDir('a.tuner.ts'),
-  config: {
-    a: 300,
-    b: 301,
-  },
-});
+import { Config } from './config/configSchema.ts';
+
+const config = (await Tuner.use.loadConfig()) as Config;
+
+setInterval(() => console.log(Deno.memoryUsage()), 500);

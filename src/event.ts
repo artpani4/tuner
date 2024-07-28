@@ -13,7 +13,6 @@ const myEventTarget = new MyEventTarget();
 
 myEventTarget.addEventListener('myEvent', (event: Event) => {
   const customEvent = event as CustomEvent;
-  console.log('Событие myEvent с данными:', customEvent.detail);
 });
 
 myEventTarget.triggerCustomEvent('myEvent', {
@@ -36,7 +35,6 @@ myEventTarget.triggerCustomEvent('myEvent', {
 
 // myEventTarget.addEventListener('myEvent', (event: Event) => {
 //   const customEvent = event as CustomEvent;
-//   console.log('Событие myEvent с данными:', customEvent.detail);
 // });
 
 // myEventTarget.triggerCustomEvent('myEvent', {

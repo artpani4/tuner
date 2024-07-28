@@ -5,7 +5,7 @@
     }
   },
   "tasks": {
-    "start": "deno run --allow-all src/index.ts"
+    "start": "config=develop deno run --allow-all example/config/main.ts"
   },
   "lint": {
     "files": {
