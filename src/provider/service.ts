@@ -5,7 +5,9 @@ import axiod from 'https://deno.land/x/axiod/mod.ts';
 import { GithubRes } from './scheme/githubRes.ts';
 import { ITunerConfig } from '../type.ts';
 import { importFromString } from '../loaders.ts';
-
+import Notion from 'https://deno.land/x/integrations@v0.0.6/notion/mod.ts';
+import { CodeBlock } from 'https://deno.land/x/integrations@v0.0.6/notion/src/blockInterfaces.ts';
+import { urlToId } from 'https://deno.land/x/integrations@v0.0.6/notion/src/helpers.ts';
 /**
 Получает конфигурацию из репозитория GitHub с использованием предоставленного API-ключа, владельца репозитория, названия репозитория и пути к файлу.
 @param apiKey - API-ключ для аутентификации при доступе к репозиторию GitHub.
@@ -53,15 +55,13 @@ export async function getGitHubConfig(
  */
 export async function getNotionConfig(key: string, blockUrl: string) {
   try {
-    const notion = new Client({
-      auth: key,
-    });
-    const blockId = getBlockIdByURL(blockUrl);
-    if (blockId === null) throw new Error('Invalid block');
-    const response = await notion.blocks.retrieve({
-      block_id: blockId,
-    }) as Block;
-    const strConfig = response.code.rich_text[0].plain_text;
+    const notion = new Notion({ key });
+    const blockOfCode = await notion.getter.getBlockById(
+      urlToId.block(blockUrl),
+    );
+    const strConfig = await notion.extractor.extractTextFromBlock(
+      blockOfCode,
+    );
     const convertedText = await importFromString(
       strConfig,
     ) as { default: ITunerConfig };

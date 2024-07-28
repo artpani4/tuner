@@ -6,6 +6,10 @@ type TargetType =
   | 'variable'
   | 'remoteData';
 
+// const reg = new FinalizationRegistry((id: number) => {
+//   console.log(`Вард ${id} был уничтожен!`);
+// });
+
 type remoteCb<T> = () => Promise<T>;
 export interface WardEventData<T> {
   old: object | string | T;
@@ -14,13 +18,18 @@ export interface WardEventData<T> {
 }
 
 export class Ward<T extends Object = {}> {
+  static wards: Ward<any>[] = [];
+
+  static stopAllWards: () => void = () => {
+    Ward.wards.forEach((ward) => ward.stop());
+    Ward.wards = [];
+  };
   private title = '';
   private period = 500;
   private timeoutId = 0;
   private localPath = '';
   private lastChangeDetectedTimestamp = 0;
   private typeData: TargetType = 'variable';
-  private counter = 0;
   private conditionToStop: (
     data: WardEventData<T>,
   ) => boolean = () => false;
@@ -42,25 +51,6 @@ export class Ward<T extends Object = {}> {
     return this;
   }
 
-  // public static on(
-  //   eventName: string,
-  //   callback: (data: WardEventData<T>) => void,
-  // ) {
-  //   globalThis.addEventListener(eventName, (e) => {
-  //     callback((e as CustomEvent).detail); // Передача данных из события в колбэк
-  //   });
-  // }
-
-  // public static journal(data: WardEventData<T>) {
-  //   return `${data.title}:
-  //   Current counter: ${data.counter}
-  //   Time of last change: ${data.timeOfLastChange} (${
-  //     new Date(data.timeOfLastChange).toLocaleString()
-  //   })
-  //   Old: ${data.old}
-  //   New: ${data.new}`;
-  // }
-
   public target = {
     file: {
       local: (path: string) => {
@@ -68,15 +58,8 @@ export class Ward<T extends Object = {}> {
         this.typeData = 'localFile';
         return this;
       },
-      // remote: (cb: () => Promise<string>) => Promise<this>,
     },
     data: {
-      // variable: (variable: T) => {
-      //   this.watchedObjectRef = new WeakRef(variable);
-      //   this.objLastMemo = this.deepCopy(variable);
-      //   this.typeData = 'variable';
-      //   return this;
-      // },
       remote: (cb: () => Promise<T>) => {
         this.dataCb = cb;
         this.typeData = 'remoteData';
@@ -91,6 +74,8 @@ export class Ward<T extends Object = {}> {
   }
 
   public build() {
+    Ward.wards.push(this);
+
     return this;
   }
 
@@ -161,6 +146,7 @@ export class Ward<T extends Object = {}> {
       for (const item of obj) {
         copy.push(this.deepCopy(item));
       }
+
       return copy;
     }
 
@@ -233,11 +219,14 @@ export class Ward<T extends Object = {}> {
     }
     const milliseconds = this.period;
     this.timeoutId = setInterval(async () => {
+      // console.log(eventEmitter.listeners('CONFIG_CHANGE'));
+      // console.log(Ward.wards.length);
       const newData = await this.grab();
+
       if (
         this.conditionToStop({
           old: this.lastMemo!,
-          new: newData,
+          new: this.deepCopy(newData),
           timeOfLastChange: this.lastChangeDetectedTimestamp,
         })
       ) {
@@ -252,6 +241,8 @@ export class Ward<T extends Object = {}> {
         this.lastChangeDetectedTimestamp = Date.now();
       }
     }, milliseconds);
+    // console.log(`${this.timeoutId} created`);
+    // reg.register(this, this.timeoutId);
   }
 
   stop() {

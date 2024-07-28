@@ -15,7 +15,8 @@ import {
 const fromAbsolutePath = (path: string) => {
   return {
     fun: async () => {
-      return (await import(path)).default as ITunerConfig;
+      return (await import(path + `?version=${Math.random()}`))
+        .default as ITunerConfig;
     },
     args: path,
   };
@@ -54,7 +55,9 @@ const fromConfigDir = (path: string) => {
 const fromCWD = (path: string) => {
   return {
     fun: async () =>
-      (await import(resolve('./', path)))
+      (await import(
+        resolve('./', path + `?version=${Math.random()}`)
+      ))
         .default as ITunerConfig,
     args: path,
   };

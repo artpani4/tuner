@@ -41,8 +41,11 @@ export async function loadConfig(): Promise<IFilledTunerConfig> {
   const mainConfig =
     await (await Load.local.configDir(`${configName}.tuner.ts`)
       .fun());
+  eventEmitter.removeAllListeners(
+    'STOP_ALL_WARDS',
+  );
+  Ward.stopAllWards();
   const configSequence = await inheritList(mainConfig);
-  // await setWatching(eventManager, configSequence);
   const mergedConfig = mergeSequentialConfigs(configSequence);
   return fillEnv(await mergedConfig);
 }
@@ -112,7 +115,6 @@ async function inheritList(
   curConfig: ITunerConfig,
   store: ConfigList = {},
 ): Promise<ConfigList> {
-  //TODO
   store[0] = {
     config: curConfig,
     delivery: async () => {
@@ -133,7 +135,6 @@ async function inheritList(
   i = 0;
   curConfig = store[0].config;
   while (curConfig.parent) {
-    // console.log(curConfig.parent);
     const parentConfig = await curConfig.parent.fun();
     store[++i] = {
       config: parentConfig,
@@ -158,15 +159,16 @@ async function mergeSequentialConfigs(
     // console.log(configs[Number(key)].config);
     const currentConfig = configs[Number(key)].config;
     if (currentConfig.watch) {
+      // console.log('Начинаю наблюдение за конфигом:');
+      // console.log(currentConfig);
       const ward = new Ward<IFilledTunerConfig>()
         .target.data.remote(
           configs[Number(key)].delivery as () => Promise<
             IFilledTunerConfig
           >,
         )
-        .time(currentConfig.watch)
+        .time(currentConfig.watch * 2)
         .ifChangedThen.emitEvent('CONFIG_CHANGE')
-        .stopIf.eventTriggered('STOP_ALL_WARDS')
         .build();
       await ward.start();
     }
@@ -184,7 +186,6 @@ export async function onChangeTrigger<T>(
   cb: (data: WardEventData<T>) => void | Promise<void>,
 ) {
   eventEmitter.addListener('CONFIG_CHANGE', cb);
-  // eventEmitter.emit('STOP_ALL_WARDS');
 }
 
 // function setWatching(

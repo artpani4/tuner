@@ -4,8 +4,8 @@ export default Tuner.tune({
   child: Tuner.Load.local.cwd('example/config/a.tuner.ts'),
   parent: Tuner.Load.local.cwd('example/config/b.tuner.ts'),
   config: {
-    test: 100,
+    test: 1000,
     develop: true,
   },
-  watch: 1500,
+  watch: 2000,
 });
