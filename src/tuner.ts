@@ -70,7 +70,9 @@ export async function loadConfig<T>(
 
     log.inf(`Resolved config path: ${resolvedPath}`);
 
-    const mainConfig = await Load.local.absolutePath(resolvedPath)
+    const mainConfig = await Load.local.absolutePath(
+      `file:///${resolvedPath}`,
+    )
       .fun();
     const configSequence = await inheritList(
       mainConfig,
@@ -180,7 +182,9 @@ async function inheritList(
     store[0] = {
       config: curConfig,
       delivery: async () => {
-        return await Load.local.absolutePath(resolvedPath).fun();
+        return await Load.local.absolutePath(
+          `file:///${resolvedPath}`,
+        ).fun();
       },
     };
     let i = 0;
