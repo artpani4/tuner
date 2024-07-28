@@ -62,7 +62,7 @@ export async function loadConfig<T>(
     const configName = getEnv('config');
     const configDir = options?.configDirName || 'config';
     const configDirPath = options?.configDirPath || './';
-    const resolvedPath = resolve(
+    const resolvedPath = 'file:///' + resolve(
       configDirPath,
       configDir,
       `${configName}.tuner.ts`,
@@ -71,7 +71,7 @@ export async function loadConfig<T>(
     log.inf(`Resolved config path: ${resolvedPath}`);
 
     const mainConfig = await Load.local.absolutePath(
-      `file:///${resolvedPath}`,
+      resolvedPath,
     )
       .fun();
     log.trc(`Путь конфига: file:///${resolvedPath}`);
