@@ -48,7 +48,6 @@ function configDir<T extends ITunerConfig>(path: string) {
   return {
     fun: async (): Promise<T> => {
       try {
-        console.log('TRY TO IMPORT ', path);
         const modulePath = resolve(path) +
           `?version=${Math.random()}`;
         const module = await import(`${modulePath}`);
