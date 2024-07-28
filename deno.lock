@@ -666,6 +666,7 @@
       "jsr:@libs/std@^2024.7.24",
       "jsr:@std/dotenv@^0.225.0",
       "jsr:@std/fs@^1.0.0",
+      "jsr:@std/path@^1.0.2",
       "jsr:@vseplet/luminous@^1.0.5"
     ]
   }

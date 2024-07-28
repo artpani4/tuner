@@ -13,8 +13,10 @@ const log = new luminous.Logger(loggerOptions);
  * @param value Значение по умолчанию.
  * @returns Функция, возвращающая значение переменной окружения или значение по умолчанию.
  */
-const getStringOrDefault = (value: string) => {
-  return (envValue: string) => {
+const getStringOrDefault = (
+  value: string,
+): (envValue: string) => string => {
+  return (envValue: string): string => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
@@ -37,8 +39,10 @@ const getStringOrDefault = (value: string) => {
  * @param value Значение по умолчанию.
  * @returns Функция, возвращающая значение переменной окружения или значение по умолчанию.
  */
-const getNumberOrDefault = (value: number) => {
-  return (envValue: string) => {
+const getNumberOrDefault = (
+  value: number,
+): (envValue: string) => number => {
+  return (envValue: string): number => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
@@ -61,8 +65,10 @@ const getNumberOrDefault = (value: number) => {
  * @param value Значение по умолчанию.
  * @returns Функция, возвращающая значение переменной окружения или значение по умолчанию.
  */
-const getBooleanOrDefault = (value: boolean) => {
-  return (envValue: string) => {
+const getBooleanOrDefault = (
+  value: boolean,
+): (envValue: string) => boolean => {
+  return (envValue: string): boolean => {
     try {
       return getEnv(envValue).toLowerCase() === 'true' ||
         getEnv(envValue) === '1';
@@ -86,8 +92,10 @@ const getBooleanOrDefault = (value: boolean) => {
  * @param exitMessage Сообщение перед завершением процесса.
  * @returns Функция, возвращающая значение переменной окружения или завершающая процесс.
  */
-const getStringOrExit = (exitMessage?: string) => {
-  return (envValue: string) => {
+const getStringOrExit = (
+  exitMessage?: string,
+): (envValue: string) => string => {
+  return (envValue: string): string => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
@@ -111,8 +119,10 @@ const getStringOrExit = (exitMessage?: string) => {
  * @param exitMessage Сообщение перед завершением процесса.
  * @returns Функция, возвращающая значение переменной окружения или завершающая процесс.
  */
-const getNumberOrExit = (exitMessage?: string) => {
-  return (envValue: string) => {
+const getNumberOrExit = (
+  exitMessage?: string,
+): (envValue: string) => number => {
+  return (envValue: string): number => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
@@ -136,8 +146,10 @@ const getNumberOrExit = (exitMessage?: string) => {
  * @param exitMessage Сообщение перед завершением процесса.
  * @returns Функция, возвращающая значение переменной окружения или завершающая процесс.
  */
-const getBooleanOrExit = (exitMessage?: string) => {
-  return (envValue: string) => {
+const getBooleanOrExit = (
+  exitMessage?: string,
+): (envValue: string) => boolean => {
+  return (envValue: string): boolean => {
     try {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
@@ -162,8 +174,10 @@ const getBooleanOrExit = (exitMessage?: string) => {
  * @param error Исключение, которое нужно сгенерировать.
  * @returns Функция, возвращающая значение переменной окружения или генерирующая исключение.
  */
-const getStringOrThrow = <T extends Error>(error: T) => {
-  return (envValue: string) => {
+const getStringOrThrow = <T extends Error>(
+  error: T,
+): (envValue: string) => string => {
+  return (envValue: string): string => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
@@ -186,8 +200,10 @@ const getStringOrThrow = <T extends Error>(error: T) => {
  * @param error Исключение, которое нужно сгенерировать.
  * @returns Функция, возвращающая значение переменной окружения или генерирующая исключение.
  */
-const getNumberOrThrow = <T extends Error>(error: T) => {
-  return (envValue: string) => {
+const getNumberOrThrow = <T extends Error>(
+  error: T,
+): (envValue: string) => number => {
+  return (envValue: string): number => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
@@ -210,8 +226,10 @@ const getNumberOrThrow = <T extends Error>(error: T) => {
  * @param error Исключение, которое нужно сгенерировать.
  * @returns Функция, возвращающая значение переменной окружения или генерирующая исключение.
  */
-const getBooleanOrThrow = <T extends Error>(error: T) => {
-  return (envValue: string) => {
+const getBooleanOrThrow = <T extends Error>(
+  error: T,
+): (envValue: string) => boolean => {
+  return (envValue: string): boolean => {
     try {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
@@ -235,8 +253,10 @@ const getBooleanOrThrow = <T extends Error>(error: T) => {
  * @param compute Функция для асинхронного вычисления значения.
  * @returns Асинхронная функция, возвращающая значение переменной окружения или вычисляющая его.
  */
-const getStringOrAsyncCompute = (compute: () => Promise<string>) => {
-  return async (envValue: string) => {
+const getStringOrAsyncCompute = (
+  compute: () => Promise<string>,
+): (envValue: string) => Promise<string> => {
+  return async (envValue: string): Promise<string> => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
@@ -259,8 +279,10 @@ const getStringOrAsyncCompute = (compute: () => Promise<string>) => {
  * @param compute Функция для асинхронного вычисления значения.
  * @returns Асинхронная функция, возвращающая значение переменной окружения или вычисляющая его.
  */
-const getNumberOrAsyncCompute = (compute: () => Promise<number>) => {
-  return async (envValue: string) => {
+const getNumberOrAsyncCompute = (
+  compute: () => Promise<number>,
+): (envValue: string) => Promise<number> => {
+  return async (envValue: string): Promise<number> => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
@@ -285,8 +307,8 @@ const getNumberOrAsyncCompute = (compute: () => Promise<number>) => {
  */
 const getBooleanOrAsyncCompute = (
   compute: () => Promise<boolean>,
-) => {
-  return async (envValue: string) => {
+): (envValue: string) => Promise<boolean> => {
+  return async (envValue: string): Promise<boolean> => {
     try {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
@@ -310,8 +332,10 @@ const getBooleanOrAsyncCompute = (
  * @param compute Функция для вычисления значения.
  * @returns Функция, возвращающая значение переменной окружения или вычисляющая его.
  */
-const getStringOrCompute = (compute: () => string) => {
-  return (envValue: string) => {
+const getStringOrCompute = (
+  compute: () => string,
+): (envValue: string) => string => {
+  return (envValue: string): string => {
     try {
       return getEnv(envValue);
     } catch (e: unknown) {
@@ -334,8 +358,10 @@ const getStringOrCompute = (compute: () => string) => {
  * @param compute Функция для вычисления значения.
  * @returns Функция, возвращающая значение переменной окружения или вычисляющая его.
  */
-const getNumberOrCompute = (compute: () => number) => {
-  return (envValue: string) => {
+const getNumberOrCompute = (
+  compute: () => number,
+): (envValue: string) => number => {
+  return (envValue: string): number => {
     try {
       return Number(getEnv(envValue));
     } catch (e: unknown) {
@@ -358,8 +384,10 @@ const getNumberOrCompute = (compute: () => number) => {
  * @param compute Функция для вычисления значения.
  * @returns Функция, возвращающая значение переменной окружения или вычисляющая его.
  */
-const getBooleanOrCompute = (compute: () => boolean) => {
-  return (envValue: string) => {
+const getBooleanOrCompute = (
+  compute: () => boolean,
+): (envValue: string) => boolean => {
+  return (envValue: string): boolean => {
     try {
       const val = getEnv(envValue);
       return val.toLowerCase() === 'true' || val === '1';
@@ -384,7 +412,7 @@ const getNumber = {
   orAsyncCompute: getNumberOrAsyncCompute,
   orCompute: getNumberOrCompute,
   orThrow: getNumberOrThrow,
-  orNothing: () => () => {},
+  orNothing: (): () => void => () => {},
 };
 
 const getString = {
@@ -393,7 +421,7 @@ const getString = {
   orAsyncCompute: getStringOrAsyncCompute,
   orCompute: getStringOrCompute,
   orThrow: getStringOrThrow,
-  orNothing: () => () => {},
+  orNothing: (): () => void => () => {},
 };
 
 const getBoolean = {
@@ -402,7 +430,7 @@ const getBoolean = {
   orAsyncCompute: getBooleanOrAsyncCompute,
   orCompute: getBooleanOrCompute,
   orThrow: getBooleanOrThrow,
-  orNothing: () => () => {},
+  orNothing: (): () => void => () => {},
 };
 
 export default { getString, getNumber, getBoolean };
