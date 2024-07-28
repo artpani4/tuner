@@ -1,6 +1,6 @@
 import Tuner from '../../mod.ts';
 const cfg = Tuner.tune({
-  data: { base: 100 },
+  data: { base: 120 },
   env: {
     base: 'oenfoewn',
   },
