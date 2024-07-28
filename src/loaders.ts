@@ -43,8 +43,9 @@ const configDir = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = resolve(path) + `?version=${Math.random()}`;
-      const module = await import(`file:///${modulePath}`);
+      const modulePath = 'file:///' + resolve(path) +
+        `?version=${Math.random()}`;
+      const module = await import(modulePath);
       log.inf(
         `Successfully loaded config from config directory: ${modulePath}`,
       );
@@ -69,9 +70,9 @@ const cwd = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = resolve('./', path) +
+      const modulePath = 'file:///' + resolve('./', path) +
         `?version=${Math.random()}`;
-      const module = await import(`file:///${modulePath}`);
+      const module = await import(modulePath);
       log.inf(`Successfully loaded config from CWD: ${path}`);
       return module.default as T;
     } catch (error) {
