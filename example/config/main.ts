@@ -5,4 +5,4 @@ const c = await Tuner.use.loadConfig<DevelopCfgType>({
   configDirName: 'config',
   configDirPath: './example',
 });
-console.log(c);
+console.log(c.data);
