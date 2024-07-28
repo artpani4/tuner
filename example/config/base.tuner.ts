@@ -1,5 +1,10 @@
 import Tuner from '../../mod.ts';
-
-export default Tuner.tune({
-  config: { a: 50, b: 40, c: 402, base: false },
+const cfg = Tuner.tune({
+  data: { base: 100 },
+  env: {
+    base: 'oenfoewn',
+  },
 });
+
+export default cfg;
+export type BaseCfgType = typeof cfg;

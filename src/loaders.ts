@@ -1,65 +1,93 @@
+import luminous from '@vseplet/luminous';
 import { ITunerConfig } from './type.ts';
-import { resolve } from '@libs/std/';
-import { findDirectoryInCWD } from './pathHelper.ts';
+import { resolve } from 'https://deno.land/std/path/mod.ts';
+import {
+  findDirectory,
+  findDirectoryInCWD,
+} from './utils/pathHelper.ts';
+
+const loggerOptions = new luminous.OptionsBuilder().setName('LOADERS')
+  .build();
+const log = new luminous.Logger(loggerOptions);
 
 /**
  * Получает конфигурацию из указанного абсолютного пути.
  * @param path Путь к файлу с конфигурацией.
  * @returns {Promise<() => Promise<ITunerConfig>>} Возвращает функцию, которая возвращает объект с конфигурацией.
  */
-const fromAbsolutePath = (path: string) => {
+function absolutePath<T extends ITunerConfig>(path: string) {
   return {
-    fun: async () => {
-      const versionedPath = `${path}?version=${Math.random()}`;
-      const module = await import(versionedPath);
-      return module.default as ITunerConfig;
+    fun: async (): Promise<T> => {
+      try {
+        const versionedPath = `${path}?version=${Math.random()}`;
+        const module = await import(versionedPath);
+        log
+          .inf(
+            `Successfully loaded config from absolute path: ${path}`,
+          );
+        return module.default as T;
+      } catch (error) {
+        log
+          .err(
+            `Error loading config from absolute path: ${path} - ${error}`,
+          );
+        throw error;
+      }
     },
     args: path,
   };
-};
+}
 
 /**
  * Получает конфигурацию из файла в директории "config" в текущей рабочей директории.
- * @param path Относительный путь к файлу с конфигурацией в директории "config".
+ * @param path Относительный путь к файлу с конфигурацией.
  * @returns {Promise<() => Promise<ITunerConfig>>} Возвращает функцию, которая возвращает объект с конфигурацией.
  * @throws Error если директория "config" не найдена.
  */
-const fromConfigDir = (path: string) => {
+function configDir<T extends ITunerConfig>(path: string) {
   return {
-    fun: async () => {
-      const configDir = await findDirectoryInCWD('config');
-
-      if (configDir === null) {
-        throw new Error('config directory not found');
+    fun: async (): Promise<T> => {
+      try {
+        console.log('TRY TO IMPORT ', path);
+        const modulePath = resolve(path) +
+          `?version=${Math.random()}`;
+        const module = await import(`${modulePath}`);
+        log.inf(
+          `Successfully loaded config from config directory: ${modulePath}`,
+        );
+        return module.default as T;
+      } catch (error) {
+        log.err(
+          `Error loading config from config directory: ${path} - ${error}`,
+        );
+        throw error;
       }
-
-      const modulePath = resolve(configDir, path) +
-        `?version=${Math.random()}`;
-      const module = (await import(`file://${modulePath}`)) as {
-        default: ITunerConfig;
-      };
-      return module.default;
     },
     args: path,
   };
-};
-
+}
 /**
  * Получает конфигурацию из файла в текущей рабочей директории.
  * @param path Относительный путь к файлу с конфигурацией в текущей рабочей директории.
  * @returns {Promise<() => Promise<ITunerConfig>>} Возвращает функцию, которая возвращает объект с конфигурацией.
  */
-const fromCWD = (path: string) => {
+function cwd<T extends ITunerConfig>(path: string) {
   return {
-    fun: async () => {
-      const modulePath = resolve('./', path) +
-        `?version=${Math.random()}`;
-      const module = await import(modulePath);
-      return module.default as ITunerConfig;
+    fun: async (): Promise<T> => {
+      try {
+        const modulePath = resolve('./', path) +
+          `?version=${Math.random()}`;
+        const module = await import(modulePath);
+        log.inf(`Successfully loaded config from CWD: ${path}`);
+        return module.default as T;
+      } catch (error) {
+        log.err(`Error loading config from CWD: ${path} - ${error}`);
+        throw error;
+      }
     },
     args: path,
   };
-};
+}
 
 /**
  * Импортирует код из строки с типом TypeScript.
@@ -67,11 +95,17 @@ const fromCWD = (path: string) => {
  * @returns {Promise<any>} Возвращает модуль, полученный из строки кода.
  */
 export async function importFromString(code: string) {
-  const base64Code = `data:application/typescript;base64,${
-    btoa(code)
-  }`;
-  const module = await import(base64Code);
-  return module;
+  try {
+    const base64Code = `data:application/typescript;base64,${
+      btoa(code)
+    }`;
+    const module = await import(base64Code);
+    log.inf`Successfully imported module from string`;
+    return module;
+  } catch (error) {
+    log.err(`Error importing module from string: ${error}`);
+    throw error;
+  }
 }
 
 /**
@@ -79,57 +113,81 @@ export async function importFromString(code: string) {
  * @param cb Функция обратного вызова, которая возвращает промис с текстом кода конфигурации в формате TypeScript.
  * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
  */
-const remoteAsString = (cb: () => Promise<string>) => {
+function remoteAsString<T extends ITunerConfig>(
+  cb: () => Promise<string>,
+) {
   return {
-    fun: async () => {
-      const code = await cb();
-      const module = await importFromString(code);
-      return module as ITunerConfig;
+    fun: async (): Promise<T> => {
+      try {
+        const code = await cb();
+        const module = await importFromString(code);
+        log.inf`Successfully loaded remote config as string`;
+        return module as T;
+      } catch (error) {
+        log.err(`Error loading remote config as string: ${error}`);
+        throw error;
+      }
     },
     args: cb.arguments,
   };
-};
+}
 
 /**
  * Загружает конфигурацию из модуля с типом TypeScript, полученного с помощью функции обратного вызова.
  * @param cb Функция обратного вызова, которая возвращает промис с объектом конфигурации в формате { default: ITunerConfig }.
  * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
  */
-const remoteAsModule = (
+function remoteAsModule<T extends ITunerConfig>(
   cb: () => Promise<{ default: ITunerConfig }>,
-) => {
+) {
   return {
-    fun: async () => {
-      const module = await cb();
-      return module.default as ITunerConfig;
+    fun: async (): Promise<T> => {
+      try {
+        const module = await cb();
+        log.inf`Successfully loaded remote config as module`;
+        return module.default as T;
+      } catch (error) {
+        log.err(`Error loading remote config as module: ${error}`);
+        throw error;
+      }
     },
     args: cb.arguments,
   };
-};
+}
 
 /**
  * Загружает конфигурацию из файла с указанным источником.
  * @param source Путь к файлу с конфигурацией.
  * @returns {Promise<ITunerConfig>} Возвращает промис с объектом конфигурации.
  */
-const remoteByImport = (source: string) => {
+function remoteByImport<T extends ITunerConfig>(source: string) {
   return {
-    fun: async () => {
-      const module = await import(source);
-      return module.default as ITunerConfig;
+    fun: async (): Promise<T> => {
+      try {
+        const module = await import(source);
+        log
+          .inf`Successfully loaded remote config by import: ${source}`;
+        return module.default as T;
+      } catch (error) {
+        log
+          .err(
+            `Error loading remote config by import: ${source} - ${error}`,
+          );
+        throw error;
+      }
     },
     args: source,
   };
-};
+}
 
 /**
  * Загрузчик конфигурации, предоставляющий функции для получения конфигурации из различных источников.
  */
-const Load = {
+export const Load = {
   local: {
-    absolutePath: fromAbsolutePath,
-    configDir: fromConfigDir,
-    cwd: fromCWD,
+    absolutePath,
+    configDir,
+    cwd,
   },
   remote: {
     import: remoteByImport,
@@ -138,5 +196,3 @@ const Load = {
     providers: {},
   },
 };
-
-export default Load;

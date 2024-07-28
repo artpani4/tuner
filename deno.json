@@ -8,7 +8,8 @@
     }
   },
   "tasks": {
-    "start": "config=develop deno run --allow-all example/config/main.ts"
+    "example": "config=develop deno run --allow-all example/config/main.ts",
+    "check": "config=bot deno run --allow-all config/checkConfig.ts"
   },
   "lint": {
     "files": {
@@ -54,6 +55,7 @@
   "imports": {
     "@libs/std": "jsr:@libs/std@^2024.7.24",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.0",
-    "@std/fs": "jsr:@std/fs@^1.0.0"
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@vseplet/luminous": "jsr:@vseplet/luminous@^1.0.5"
   }
 }

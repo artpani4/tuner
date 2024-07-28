@@ -26,10 +26,12 @@
       "jsr:@std/data-structures@^1.0.0-rc.1": "jsr:@std/data-structures@1.0.0",
       "jsr:@std/datetime@0.224.3": "jsr:@std/datetime@0.224.3",
       "jsr:@std/dotenv@0.225.0": "jsr:@std/dotenv@0.225.0",
+      "jsr:@std/dotenv@^0.225.0": "jsr:@std/dotenv@0.225.0",
       "jsr:@std/encoding@1.0.0-rc.2": "jsr:@std/encoding@1.0.0-rc.2",
       "jsr:@std/encoding@1.0.1": "jsr:@std/encoding@1.0.1",
       "jsr:@std/expect@0.224.5": "jsr:@std/expect@0.224.5",
       "jsr:@std/flags@0.224.0": "jsr:@std/flags@0.224.0",
+      "jsr:@std/fmt@0.224.0": "jsr:@std/fmt@0.224.0",
       "jsr:@std/fmt@0.225.6": "jsr:@std/fmt@0.225.6",
       "jsr:@std/fmt@^0.225.4": "jsr:@std/fmt@0.225.6",
       "jsr:@std/fmt@^1.0.0-rc.1": "jsr:@std/fmt@1.0.0-rc.1",
@@ -77,6 +79,7 @@
       "jsr:@std/webgpu@0.224.5": "jsr:@std/webgpu@0.224.5",
       "jsr:@std/yaml@0.224.3": "jsr:@std/yaml@0.224.3",
       "jsr:@std/yaml@^1.0.0-rc.1": "jsr:@std/yaml@1.0.0",
+      "jsr:@vseplet/luminous@^1.0.5": "jsr:@vseplet/luminous@1.0.5",
       "npm:superjson@1.13.3": "npm:superjson@1.13.3"
     },
     "jsr": {
@@ -201,6 +204,9 @@
         "dependencies": [
           "jsr:@std/assert@^0.224.0"
         ]
+      },
+      "@std/fmt@0.224.0": {
+        "integrity": "e20e9a2312a8b5393272c26191c0a68eda8d2c4b08b046bad1673148f1d69851"
       },
       "@std/fmt@0.225.6": {
         "integrity": "aba6aea27f66813cecfd9484e074a9e9845782ab0685c030e453a8a70b37afc8"
@@ -369,6 +375,12 @@
       },
       "@std/yaml@1.0.0": {
         "integrity": "06635c312121ee779e9eef4e9f49c1a26003b15da9ed1178037ccb91dc3a5129"
+      },
+      "@vseplet/luminous@1.0.5": {
+        "integrity": "26625020f4d9e7d510b35cae15f61c5de42a1eded2fe5c2a3aa0dc2699412235",
+        "dependencies": [
+          "jsr:@std/fmt@0.224.0"
+        ]
       }
     },
     "npm": {
@@ -391,6 +403,7 @@
     }
   },
   "redirects": {
+    "https://deno.land/std/path/mod.ts": "https://deno.land/std@0.190.0/path/mod.ts",
     "https://deno.land/x/axiod/mod.ts": "https://deno.land/x/axiod@0.26.2/mod.ts",
     "https://deno.land/x/dotenv/mod.ts": "https://deno.land/x/dotenv@v3.2.2/mod.ts",
     "https://deno.land/x/json_tree/mod.ts": "https://deno.land/x/json_tree@latest/mod.ts",
@@ -652,7 +665,8 @@
     "dependencies": [
       "jsr:@libs/std@^2024.7.24",
       "jsr:@std/dotenv@^0.225.0",
-      "jsr:@std/fs@^1.0.0"
+      "jsr:@std/fs@^1.0.0",
+      "jsr:@vseplet/luminous@^1.0.5"
     ]
   }
 }
