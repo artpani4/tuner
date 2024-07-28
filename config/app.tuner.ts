@@ -2,7 +2,7 @@ import Tuner from '../mod.ts';
 import { BotCfgType } from './bot.tuner.ts';
 
 const cfg = Tuner.tune({
-  child: Tuner.Load.local.configDir<BotCfgType>('bot.tuner.ts'),
+  child: Tuner.Load.local.cwd<BotCfgType>('config/bot.tuner.ts'),
   env: {
     SOME_ENV: Tuner.Env.getNumber.orCompute(() => Math.random()),
   },

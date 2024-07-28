@@ -9,15 +9,30 @@ const log = new luminous.Logger(loggerOptions);
 /**
  * Получает конфигурацию из указанного абсолютного пути.
  * @param path Путь к файлу с конфигурацией.
- * @returns {Promise<() => Promise<ITunerConfig>>} Возвращает функцию, которая возвращает объект с конфигурацией.
+ * @returns {() => Promise<ITunerConfig>} Возвращает функцию, которая возвращает объект с конфигурацией.
  */
 const absolutePath = <T extends ITunerConfig>(
   path: string,
 ): { fun: () => Promise<T>; args: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const versionedPath = `${path}?version=${Math.random()}`;
-      const module = await import(versionedPath);
+      // Get the current working directory
+      const currentDir = Deno.cwd();
+      log.inf(`Current working directory: ${currentDir}`);
+
+      // Read the contents of the current directory
+      const dirEntries = [];
+      for await (const entry of Deno.readDir(currentDir)) {
+        dirEntries.push(entry.name);
+      }
+      log.inf(`Directory contents: ${dirEntries.join(', ')}`);
+
+      // Construct the versioned path (removed random version to avoid cache issues)
+
+      log.inf(`Attempting to load config from: ${path}`);
+
+      // Import the module
+      const module = await import(path);
       log.inf(
         `Successfully loaded config from absolute path: ${path}`,
       );
@@ -178,7 +193,7 @@ const remoteByImport = <T extends ITunerConfig>(
 export const Load = {
   local: {
     absolutePath,
-    configDir,
+    // configDir,
     cwd,
   },
   remote: {
