@@ -1,4 +1,4 @@
-import { jsonTree } from 'https://deno.land/x/json_tree/mod.ts';
+// import { jsonTree } from 'https://deno.land/x/json_tree/mod.ts';
 type ObjectType = { [key: string]: any };
 
 /**
@@ -92,9 +92,7 @@ export async function generateSchema(
     // file does not exist, create it and add import statement
     await Deno.writeTextFile(
       filePath,
-      `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${code}\n\n${
-        jsonTree(obj, false).replace(/^/gm, '//')
-      }`,
+      `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${code}\n\n`,
     );
     return;
   }
@@ -102,21 +100,17 @@ export async function generateSchema(
   if (fileData.length > 0) {
     if (
       !fileData.includes(
-        'import { z } from \'https://deno.land/x/zod/mod.ts\';',
+        "import { z } from 'https://deno.land/x/zod/mod.ts';",
       )
     ) {
       await Deno.writeTextFile(
         filePath,
-        `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${fileData}\n\n${code}\n\n${
-          jsonTree(obj, false).replace(/^/gm, '//')
-        }`,
+        `import { z } from 'https://deno.land/x/zod/mod.ts';\n\n${fileData}\n\n${code}\n\n`,
       );
     } else {
       await Deno.writeTextFile(
         filePath,
-        `${fileData}\n\n${code}\n\n${
-          jsonTree(obj, false).replace(/^/gm, '//')
-        }`,
+        `${fileData}\n\n${code}\n\n`,
       );
     }
   } else {

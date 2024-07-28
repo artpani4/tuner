@@ -7,5 +7,4 @@ export default Tuner.tune({
     test: 1000,
     develop: true,
   },
-  watch: 2000,
 });

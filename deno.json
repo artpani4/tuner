@@ -1,4 +1,7 @@
 {
+  "name": "@artpani/tuner",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
   "test": {
     "files": {
       "include": ["tests/"]
@@ -17,7 +20,6 @@
       "exclude": []
     }
   },
-
   "fmt": {
     "options": {
       "useTabs": false,
@@ -36,7 +38,6 @@
       ]
     }
   },
-
   "compilerOptions": {
     "allowJs": false,
     "strict": true,
@@ -49,5 +50,10 @@
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "exactOptionalPropertyTypes": true
+  },
+  "imports": {
+    "@libs/std": "jsr:@libs/std@^2024.7.24",
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.0",
+    "@std/fs": "jsr:@std/fs@^1.0.0"
   }
 }

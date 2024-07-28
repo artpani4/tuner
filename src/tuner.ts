@@ -1,9 +1,7 @@
 import { IFilledTunerConfig, ITunerConfig } from './type.ts';
-import { config as dotenvConfig } from 'https://deno.land/x/dotenv/mod.ts';
+import { load } from '@std/dotenv/';
 import Load from './loaders.ts';
 import { MissingConfigNameEnv } from './errors.ts';
-import { Ward, WardEventData } from './ward/ward.ts';
-import { eventEmitter } from './ward/eventManager.ts';
 
 type ConfigList = {
   [key: number]: {
@@ -25,7 +23,7 @@ type ConfigList = {
  * @throws {MissingConfigNameEnv} Если переменная окружения не задана и отсутствует в файле .env.
  */
 export function getEnv(name: string): string {
-  const value = Deno.env.get(name) || dotenvConfig()[name];
+  const value = Deno.env.get(name);
   if (!value) {
     throw new MissingConfigNameEnv(name);
   }
@@ -38,13 +36,14 @@ export function getEnv(name: string): string {
  */
 export async function loadConfig(): Promise<IFilledTunerConfig> {
   const configName = getEnv('config');
-  const mainConfig =
-    await (await Load.local.configDir(`${configName}.tuner.ts`)
-      .fun());
-  eventEmitter.removeAllListeners(
-    'STOP_ALL_WARDS',
-  );
-  Ward.stopAllWards();
+  const mainConfig = await Load.local.configDir(
+    `${configName}.tuner.ts`,
+  )
+    .fun();
+  // eventEmitter.removeAllListeners(
+  //   'STOP_ALL_WARDS',
+  // );
+  // Ward.stopAllWards();
   const configSequence = await inheritList(mainConfig);
   const mergedConfig = mergeSequentialConfigs(configSequence);
   return fillEnv(await mergedConfig);
@@ -158,20 +157,7 @@ async function mergeSequentialConfigs(
   for (const key of sortedKeys) {
     // console.log(configs[Number(key)].config);
     const currentConfig = configs[Number(key)].config;
-    if (currentConfig.watch) {
-      // console.log('Начинаю наблюдение за конфигом:');
-      // console.log(currentConfig);
-      const ward = new Ward<IFilledTunerConfig>()
-        .target.data.remote(
-          configs[Number(key)].delivery as () => Promise<
-            IFilledTunerConfig
-          >,
-        )
-        .time(currentConfig.watch * 2)
-        .ifChangedThen.emitEvent('CONFIG_CHANGE')
-        .build();
-      await ward.start();
-    }
+
     if (mergedConfig === null) {
       mergedConfig = currentConfig;
     } else {
@@ -182,11 +168,11 @@ async function mergeSequentialConfigs(
   return mergedConfig as ITunerConfig;
 }
 
-export async function onChangeTrigger<T>(
-  cb: (data: WardEventData<T>) => void | Promise<void>,
-) {
-  eventEmitter.addListener('CONFIG_CHANGE', cb);
-}
+// export async function onChangeTrigger<T>(
+//   cb: (data: WardEventData<T>) => void | Promise<void>,
+// ) {
+//   eventEmitter.addListener('CONFIG_CHANGE', cb);
+// }
 
 // function setWatching(
 //   manager: EventManager,

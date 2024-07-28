@@ -1,4 +1,4 @@
-import { walk } from 'https://deno.land/std@0.164.0/fs/walk.ts';
+import { walk } from '@std/fs';
 
 /**
  * Поиск директории с указанным именем в заданном пути.

@@ -17,5 +17,4 @@ export default Tuner.tune({
     f: 780,
     CONFIG_A: false,
   },
-  watch: 5000,
 });
