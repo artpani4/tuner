@@ -1,7 +1,7 @@
-import Env from './src/utils/envFuns.ts';
-import tune from './src/tuner.ts';
-import { loadConfig } from './src/tuner.ts';
-import { Load } from './src/loaders.ts';
+import Env from './source/utils/envFuns.ts';
+import tune from './source/tuner.ts';
+import { loadConfig } from './source/tuner.ts';
+import { Load } from './source/loaders.ts';
 
 /**
  * Основной экспортируемый объект для работы с настройками конфигурации.
