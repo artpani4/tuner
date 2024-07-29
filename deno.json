@@ -1,6 +1,6 @@
 {
   "name": "@artpani/tuner",
-  "version": "0.2.1",
+  "version": "NaN.2.2",
   "exports": "./mod.ts",
   "workflows": {
     "UpdateSemverDeployJsr": {
