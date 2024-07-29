@@ -10,12 +10,20 @@ export async function findDirectory(
   directoryPath: string,
   targetName: string,
 ): Promise<string | null> {
+  const directories = [];
   for await (const entry of walk(directoryPath)) {
     if (entry.isDirectory && entry.name === targetName) {
-      return entry.path;
+      directories.push(entry.path);
     }
   }
-  return null;
+
+  if (directories.length > 1) {
+    throw new Error(
+      `Multiple directories named '${targetName}' found`,
+    );
+  }
+
+  return directories[0] || null;
 }
 
 /**

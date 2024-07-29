@@ -1,6 +1,7 @@
 import luminous from '@vseplet/luminous';
 import { ITunerConfig } from './type.ts';
 import { resolve } from '@std/path';
+import { findDirectoryInCWD } from './utils/pathHelper.ts';
 
 const loggerOptions = new luminous.OptionsBuilder().setName('LOADERS')
   .build();
@@ -56,7 +57,14 @@ const configDir = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = 'file:///' + resolve(path);
+      const configDir = await findDirectoryInCWD('config');
+
+      if (!configDir) {
+        throw new Error('Config directory not found');
+      }
+
+      const modulePath = 'file://' + resolve(configDir, path);
+
       const module = await import(modulePath);
       log.inf(
         `Successfully loaded config from config directory: ${modulePath}`,
@@ -71,7 +79,6 @@ const configDir = <T extends ITunerConfig>(
   },
   args: path,
 });
-
 /**
  * Получает конфигурацию из файла в текущей рабочей директории.
  * @param path Относительный путь к файлу с конфигурацией в текущей рабочей директории.
@@ -189,7 +196,7 @@ const remoteByImport = <T extends ITunerConfig>(
 export const Load = {
   local: {
     absolutePath,
-    // configDir,
+    configDir,
     cwd,
   },
   remote: {
