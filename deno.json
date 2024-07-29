@@ -1,10 +1,12 @@
 {
   "name": "@artpani/tuner",
-  "version": "0.2.0",
+  "version": "NaN.2.1",
   "exports": "./mod.ts",
   "test": {
     "files": {
-      "include": ["tests/"]
+      "include": [
+        "tests/"
+      ]
     }
   },
   "tasks": {
@@ -13,11 +15,17 @@
   },
   "lint": {
     "files": {
-      "include": ["src/"]
+      "include": [
+        "src/"
+      ]
     },
     "rules": {
-      "tags": ["recommended"],
-      "include": ["ban-untagged-todo"],
+      "tags": [
+        "recommended"
+      ],
+      "include": [
+        "ban-untagged-todo"
+      ],
       "exclude": []
     }
   },
@@ -29,7 +37,6 @@
       "singleQuote": true,
       "proseWrap": "preserve"
     },
-
     "files": {
       "exclude": [
         ".vacode",

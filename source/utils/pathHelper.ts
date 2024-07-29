@@ -18,7 +18,7 @@ export async function findDirectory(
   }
 
   if (directories.length > 1) {
-    throw new Error(
+    console.log(
       `Multiple directories named '${targetName}' found`,
     );
   }
