@@ -178,7 +178,7 @@ async function inheritList(
     const resolvedPath = resolve(
       configDirPath,
       configDirName,
-      `${getEnv('config')}.tuner.ts`,
+      `${getEnv('CONFIG')}.tuner.ts`,
     );
     store[0] = {
       config: curConfig,
