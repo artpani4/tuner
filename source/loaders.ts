@@ -19,14 +19,14 @@ const absolutePath = <T extends ITunerConfig>(
     try {
       // Get the current working directory
       const currentDir = Deno.cwd();
-      log.inf(`Current working directory: ${currentDir}`);
+      // log.inf(`Current working directory: ${currentDir}`);
 
       // Read the contents of the current directory
       const dirEntries = [];
       for await (const entry of Deno.readDir(currentDir)) {
         dirEntries.push(entry.name);
       }
-      log.inf(`Directory contents: ${dirEntries.join(', ')}`);
+      // log.inf(`Directory contents: ${dirEntries.join(', ')}`);
 
       log.inf(`Attempting to load config from: ${path}`);
 

@@ -1,6 +1,6 @@
 {
   "name": "@artpani/tuner",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "exports": "./mod.ts",
   "workflows": {
     "UpdateSemverDeployJsr": {
@@ -16,6 +16,7 @@
   },
   "tasks": {
     "example": "CONFIG=develop deno run --allow-all example/config/main.ts",
+    "example2": "CONFIG=dev deno run --allow-all example2/config/main.ts",
     "check": "CONFIG=bot deno run --allow-all config/checkConfig.ts"
   },
   "lint": {

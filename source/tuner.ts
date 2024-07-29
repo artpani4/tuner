@@ -68,19 +68,22 @@ export async function loadConfig<T>(
       `${configName}.tuner.ts`,
     );
 
-    log.inf(`Resolved config path: ${resolvedPath}`);
+    // log.inf(`Resolved config path: ${resolvedPath}`);
 
     const mainConfig = await Load.local.absolutePath(
       resolvedPath,
     )
       .fun();
-    log.trc(`Путь конфига: file:///${resolvedPath}`);
+    // log.trc(`Путь конфига: file:///${resolvedPath}`);
     const configSequence = await inheritList(
       mainConfig,
       {},
       configDir,
       configDirPath,
     );
+    // log.dbg(
+    //   `INHERIT LIST: ${JSON.stringify(configSequence, null, 2)}`,
+    // );
     const mergedConfig = mergeSequentialConfigs(configSequence);
     return fillEnv(await mergedConfig) as T;
   } catch (error) {
@@ -150,8 +153,11 @@ function mergeConfigs(
 ): ITunerConfig {
   try {
     const mergedEnv = { ...parent.env, ...child.env };
-    const mergedConfig = mergeRecursive(parent.data, child.data);
-    return { ...child, env: mergedEnv, data: mergedConfig };
+    const mergedConfig = mergeRecursive(
+      parent.data || {},
+      child.data,
+    );
+    return { env: mergedEnv, data: mergedConfig };
   } catch (error) {
     log.err(
       `Error merging parent and child configurations: ${error}`,
@@ -227,7 +233,11 @@ async function mergeSequentialConfigs(
     const sortedKeys = Object.keys(configs).sort((a, b) => +b - +a);
     for (const key of sortedKeys) {
       const currentConfig = configs[Number(key)].config;
-
+      // log.inf(
+      //   `LOOKING AT CONFIG: ${
+      //     JSON.stringify(currentConfig, null, 2)
+      //   }`,
+      // );
       if (mergedConfig === null) {
         mergedConfig = currentConfig;
       } else {
