@@ -17,12 +17,6 @@ export async function findDirectory(
     }
   }
 
-  if (directories.length > 1) {
-    console.log(
-      `Multiple directories named '${targetName}' found`,
-    );
-  }
-
   return directories[0] || null;
 }
 
