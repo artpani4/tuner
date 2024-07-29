@@ -1,6 +1,6 @@
 {
   "name": "@artpani/tuner",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "exports": "./mod.ts",
   "test": {
     "files": {
@@ -8,8 +8,8 @@
     }
   },
   "tasks": {
-    "example": "config=develop deno run --allow-all example/config/main.ts",
-    "check": "config=bot deno run --allow-all config/checkConfig.ts"
+    "example": "CONFIG=develop deno run --allow-all example/config/main.ts",
+    "check": "CONFIG=bot deno run --allow-all config/checkConfig.ts"
   },
   "lint": {
     "files": {

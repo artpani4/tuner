@@ -59,7 +59,7 @@ export async function loadConfig<T>(
   options?: LoadConfigOptions,
 ): Promise<T> {
   try {
-    const configName = getEnv('config');
+    const configName = getEnv('CONFIG');
     const configDir = options?.configDirName || 'config';
     const configDirPath = options?.configDirPath || './';
     const resolvedPath = 'file:///' + resolve(
