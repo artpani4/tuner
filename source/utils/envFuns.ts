@@ -456,11 +456,13 @@ const getNumber = {
   orThrow: getNumberOrThrow,
 
   /**
-   * Возвращает пустую функцию.
+   * Возвращает числовое значение переменной окружения или undefined, если переменная отсутствует.
    * @function
-   * @returns {function(): void} Пустая функция.
+   * @returns {function(): number | undefined} Функция, возвращающая значение переменной окружения или undefined.
    */
-  orNothing: (): () => void => () => {},
+  orNothing: (): () => number | undefined => {
+    return (): number | undefined => undefined;
+  },
 };
 
 /**
@@ -509,11 +511,13 @@ const getString = {
   orThrow: getStringOrThrow,
 
   /**
-   * Возвращает пустую функцию.
+   * Возвращает строковое значение переменной окружения или undefined, если переменная отсутствует.
    * @function
-   * @returns {function(): void} Пустая функция.
+   * @returns {function(): string | undefined} Функция, возвращающая значение переменной окружения или undefined.
    */
-  orNothing: (): () => void => () => {},
+  orNothing: (): () => string | undefined => {
+    return (): string | undefined => undefined;
+  },
 };
 
 /**
@@ -562,11 +566,13 @@ const getBoolean = {
   orThrow: getBooleanOrThrow,
 
   /**
-   * Возвращает пустую функцию.
+   * Возвращает логическое значение переменной окружения или undefined, если переменная отсутствует.
    * @function
-   * @returns {function(): void} Пустая функция.
+   * @returns {function(): boolean | undefined} Функция, возвращающая значение переменной окружения или undefined.
    */
-  orNothing: (): () => void => () => {},
+  orNothing: (): () => boolean | undefined => {
+    return (): boolean | undefined => undefined;
+  },
 };
 
 /**

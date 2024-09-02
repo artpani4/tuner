@@ -21,8 +21,7 @@ const baseCfg = Tuner.tune({
     // ),
     DOPPLER_CONFIG: Tuner.Env.getString.orDefault('prd'),
     // WEBHOOK_URL: Tuner.Env.getString.orDefault(''),
-    // VITE_API_URL: Tuner.Env.getString.orDefault(''),
-    //TODO проблемы с get....orNothing из-за типа void
+    VITE_API_URL: Tuner.Env.getString.orNothing(),
   },
 });
 

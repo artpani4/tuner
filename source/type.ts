@@ -6,7 +6,7 @@ export type getRemote = () => Promise<ITunerConfig>;
 /**
  * Примитивные типы данных.
  */
-type Primitive = string | number | boolean;
+type Primitive = string | number | boolean | undefined;
 
 /**
  * Тип функции для получения значения переменной окружения.
