@@ -23,9 +23,10 @@ type EnvAsyncFun = (
 /**
  * Тип для описания родительского или дочернего конфигурационного объекта.
  */
-type ParentOrChild = {
+export type ParentOrChild = {
   fun: () => Promise<ITunerConfig>;
-  args: any;
+  args: string;
+  type: string;
 };
 
 /**

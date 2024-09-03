@@ -174,6 +174,7 @@ function mergeConfigs(
  * @param configDirPath Путь к директории конфигурации.
  * @returns Массив с последовательностью конфигураций от дочернего к родительскому.
  */
+
 async function inheritList(
   curConfig: ITunerConfig,
   store: ConfigList = {},
@@ -186,33 +187,115 @@ async function inheritList(
       configDirName,
       `${getEnv('CONFIG')}.tuner.ts`,
     );
+
+    log.inf(`Resolved initial config path: ${resolvedPath}`);
+
     store[0] = {
       config: curConfig,
       delivery: async () => {
-        return await Load.local.absolutePath(
+        log.inf(`Loading main config from: ${resolvedPath}`);
+        const mainConfig = await Load.local.absolutePath(
           `file:///${resolvedPath}`,
         ).fun();
+        log.inf(`Main config loaded successfully`);
+        return mainConfig;
       },
     };
+
     let i = 0;
+
+    // Загружаем дочерние конфигурации
     while (curConfig.child) {
-      const childConfig = await curConfig.child.fun();
+      log.inf(`Found child config at index: ${i}`);
+
+      const childLoader = curConfig.child;
+      let childConfig: ITunerConfig;
+
+      if (childLoader.type === 'configDir') {
+        log.inf(`Using configDir loader for child config.`);
+        childConfig = await Load.local.configDir(
+          childLoader.args,
+          configDirName,
+        ).fun();
+      } else if (childLoader.type === 'absolutePath') {
+        log.inf(`Using absolutePath loader for child config.`);
+        childConfig = await Load.local.absolutePath(childLoader.args)
+          .fun();
+      } else {
+        log.inf(`Using default loader for child config.`);
+        childConfig = await childLoader.fun();
+      }
+
+      log.inf(`Child config loaded successfully`);
+
       store[--i] = {
         config: childConfig,
-        delivery: curConfig.child.fun,
+        delivery: () => {
+          log.inf(
+            `Loading child config from path: ${
+              childConfig.child?.args || ''
+            }`,
+          );
+          return Load.local.configDir(
+            childConfig.child?.args || '',
+            configDirName,
+          ).fun();
+        },
       };
+
       curConfig = childConfig;
     }
+
+    log.inf(`All child configs loaded. Moving to parent configs.`);
+
+    // Сбрасываем индекс и загружаем родительские конфигурации
     i = 0;
     curConfig = store[0].config;
+
     while (curConfig.parent) {
-      const parentConfig = await curConfig.parent.fun();
+      log.inf(`Found parent config at index: ${i}`);
+
+      const parentLoader = curConfig.parent;
+      let parentConfig: ITunerConfig;
+
+      if (parentLoader.type === 'configDir') {
+        log.inf(`Using configDir loader for parent config.`);
+        parentConfig = await Load.local.configDir(
+          parentLoader.args,
+          configDirName,
+        ).fun();
+      } else if (parentLoader.type === 'absolutePath') {
+        log.inf(`Using absolutePath loader for parent config.`);
+        parentConfig = await Load.local.absolutePath(
+          parentLoader.args,
+        ).fun();
+      } else {
+        log.inf(`Using default loader for parent config.`);
+        parentConfig = await parentLoader.fun();
+      }
+
+      log.inf(`Parent config loaded successfully`);
+
       store[++i] = {
         config: parentConfig,
-        delivery: curConfig.parent.fun,
+        delivery: () => {
+          log.inf(
+            `Loading parent config from path: ${
+              parentConfig.parent?.args || ''
+            }`,
+          );
+          return Load.local.configDir(
+            parentConfig.parent?.args || '',
+            configDirName,
+          ).fun();
+        },
       };
+
       curConfig = parentConfig;
     }
+
+    log.inf(`All parent configs loaded successfully.`);
+
     return store;
   } catch (error) {
     log.err(`Error inheriting configuration list: ${error}`);

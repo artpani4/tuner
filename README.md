@@ -1,6 +1,6 @@
 # Tuner
 
-[![deno.land/x/tuner](https://shield.deno.dev/x/tuner)](https://deno.land/x/tuner)
+[![deno.land/x/tuner](https://shield.deno.dev/x/tuner)](https://deno.land/x/tuner) [![JSR Score](https://jsr.io/badges/@artpani/tuner/score)](https://jsr.io/@vseplet/reface)
 
 Tuner - модуль для управления конфигурациями проекта. Данные конфигурации описываются в виде **.ts** файла с экспортируемым объектом, который содержит перечисление _env_ переменных и полей конфига. Конфиги могут образовывать иерархию, наследуясь от родительских и перезаписываясь дочерними.
 
@@ -8,16 +8,24 @@ Tuner - модуль для управления конфигурациями п
 
 ## Оглавление
 
+- [Tuner](#tuner)
+  - [Оглавление](#оглавление)
+  - [Простейший конфиг](#простейший-конфиг)
+  - [Конфиг с описанием env-переменных](#конфиг-с-описанием-env-переменных)
+  - [Объединение конфигов](#объединение-конфигов)
+  - [Опции при загрузке](#опции-при-загрузке)
+
 ## Простейший конфиг
 
 Минимально конфиг может быть описан так:
 
 ```tsx
-// config/myConfig.tuner.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
+// ./config/myConfig.tuner.ts
+import Tuner from 'jsr:@artpani/tuner';
+
 export default Tuner.tune(
   {
-    config: {
+    data: {
       field1: 'value1',
       field2: 100,
       field3: true,
@@ -25,6 +33,9 @@ export default Tuner.tune(
     },
   },
 );
+
+export default myCfg;
+export type MyCFGType = typeof myCfg;
 ```
 
 > Функция _tune_ заботливо подскажет структуру ожидаемого объекта
@@ -32,16 +43,19 @@ export default Tuner.tune(
 Загрузка конфига и использование происходит так:
 
 ```tsx
-// main.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
-const cfg = await Tuner.use.loadConfig();
-console.log(cfg.config.field2); // 100
+// ./main.ts
+import Tuner from 'jsr:@artpani/tuner';
+import { MyCFGType } from '../config/myConfig.tuner.ts';
+const cfg = await Tuner.use.loadConfig<MyCFGType>({
+  configDirPath: 'config',
+});
+console.log(cfg.data.field2); // 100
 ```
 
-__При запуске обязательно наличие _env_ переменной _config_, ее значение - название файла конфига до _.tuner.ts,__ в данном примере это myConfig._
+__При запуске обязательно наличие _env_ переменной _CONFIG_, ее значение - название файла конфига до _.tuner.ts,__ в данном примере это myConfig._
 
 ```bash
-config=myConfig deno run --allow-all main.ts
+CONFIG=myConfig deno run --allow-all main.ts
 ```
 
 ## Конфиг с описанием env-переменных
@@ -56,8 +70,8 @@ config=myConfig deno run --allow-all main.ts
 Например, так:
 
 ```tsx
-// config/myConfig.tuner.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
+// ./config/myConfig.tuner.ts
+import Tuner from 'jsr:@artpani/tuner';
 export default Tuner.tune(
   {
     env: {
@@ -65,7 +79,7 @@ export default Tuner.tune(
       env1: Tuner.Env.getString.orDefault('defalut value1'),
       env2: Tuner.Env.getNumber.orDefault(100),
       env3: Tuner.Env.getBoolean.orDefault(true),
-      // Проигнорировать отсуствие переменной
+      // Проигнорировать отсуствие переменной(будет иметь тип значения + undefined)
       env4: Tuner.Env.getString.orNothing(),
       env5: Tuner.Env.getNumber.orNothing(),
       env6: Tuner.Env.getBoolean.orNothing(),
@@ -88,7 +102,7 @@ export default Tuner.tune(
         new Promise(() => 100)
       ),
     },
-    config: {
+    data: {
       field1: 'value1',
       field2: 100,
       field3: true,
@@ -108,19 +122,7 @@ Tuner позволяет “собрать” конфиг, используя �
 - Текущий конфиг дополнится всеми полями дочернего, при этом совпадающие поля будут переписаны значениями из дочернего конфига
 - Значения-фукнции, используемые для описания env-переменных также подчиняются этим правилам
 
-```mermaid
-flowchart LR;
-subgraph W[" "]
-direction BT
-    base["base\nРодительский конфиг\n{a: 400, b: 401, c:402}"]
-    rab["Рабочий конфиг\n{a: 300, b: 301}\nChild:A\nparent:base"]
-    A["А\nДочерний конфиг рабочего\n{b: 200, e:201}\nChild:B"]
-    B["B\nДочерний конфиг A\n{a: 100, d: 101}"]
-end
-style rab stroke:#300,stroke-width:6px
-B-->|"Добавить: a=100,d=101"|A-->|"Переписать a->100, b->200\nДобавить: d=101,e=201"|rab-->|"Переписать: a->100,b->200\nДобавить: d=101, e=201"|base
-W-->|Результат|F["{a: 100, b: 200, c:402, d: 101, e:201}"]
-```
+![Пример наследования](https://artpani.sirv.com/Images/projects/tuner/cascade.png)
 
 > При этом, например, конфигу В необязательно указывать А в качестве родительского.
 
@@ -128,109 +130,79 @@ W-->|Результат|F["{a: 100, b: 200, c:402, d: 101, e:201}"]
 
 ```tsx
 // config/develop.tuner.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
-export default Tuner.tune({
-  child: Tuner.Load.local.configDir('a.tuner.ts'),
-  parent: Tuner.Load.local.configDir('base.tuner.ts'),
-  config: {
+import Tuner from 'jsr:@artpani/tuner';
+import { ACfgType } from './a.tuner.ts';
+
+const developCfg = Tuner.tune({
+  parent: Tuner.Load.local.configDir<ACfgType>('a.tuner.ts'),
+  data: {
     a: 300,
     b: 301,
   },
 });
 
-//config/base.tuner.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
-export default Tuner.tune({
-  config: { a: 400, b: 401, c: 402 },
+export default developCfg;
+export type DevelopCFGType = typeof developCfg;
+
+// config/base.tuner.ts
+import Tuner from 'jsr:@artpani/tuner';
+
+const baseCfg = Tuner.tune({
+  data: {
+    a: 400,
+    b: 401,
+    c: 402,
+  },
 });
 
-//config/a.tuner.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
-export default Tuner.tune({
+export default baseCfg;
+export type BaseCFGType = typeof baseCfg;
+
+// config/a.tuner.ts
+import Tuner from 'jsr:@artpani/tuner';
+import { BaseCFGType } from './base.tuner.ts';
+
+const aCfg = Tuner.tune({
+  parent: Tuner.Load.local.configDir<BaseCFGType>('base.tuner.ts'),
   child: Tuner.Load.local.configDir('b.tuner.ts'),
-  config: {
+  data: {
     b: 200,
     e: 201,
   },
 });
 
-//config/b.tuner.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
-export default Tuner.tune({
-  config: { a: 100, d: 101 },
+export default aCfg;
+export type ACfgType = typeof aCfg;
+
+// config/b.tuner.ts
+import Tuner from 'jsr:@artpani/tuner';
+
+const bCfg = Tuner.tune({
+  data: {
+    a: 100,
+    d: 101,
+  },
 });
 
-//main.ts
-import Tuner from 'https://deno.land/x/tuner/mod.ts';
-const cfg = await Tuner.use.loadConfig();
-console.log(cfg);
-//{ config: { a: 100, b: 200, c: 402, e: 201, d: 101 }, env: {} }
-```
+export default bCfg;
+export type BCfgType = typeof bCfg;
 
-_Tuner.Load_ предлагает локальный и удаленный вариант подключения конфига.
+// main.ts
+import { DevelopCFGType } from './config/develop.tuner.ts';
+import Tuner from 'jsr:@artpani/tuner';
 
-Tuner.Load.local
-
-| Функция                   | Вернет объект конфига из файла по …                 |
-| ------------------------- | --------------------------------------------------- |
-| absolutePath(path:string) | …указанному полному пути до него                    |
-| configDir(path:string)    | …пути, относительно директории с названием “config” |
-| cwd(path:string)          | …относительному пути в директории проекта           |
-
----
-
-Tuner.Load.remote
-
-| Фукнция                                                         | Описание                                                                                                                    | Пример (пусть файл конфигурации лежит по адресу http://some_server/b.tuner.ts)                       |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| import(path:string)                                             | Работает, как обычный импорт                                                                                                | child: Tuner.Load.remote.import(”http://some_server/b.tuner.ts”)                                     |
-| callbackReturnModule(cb: () ⇒ Promise<{default: ITunerConfig}>) | Принимает колбэк, который вернет промис с импортируемым модулем                                                             | child: Tuner.Load.remote.callbackReturnModule(() ⇒ import(”http://some_server/b.tuner.ts”))          |
-| callbackReturnString((cb: () => Promise<string>))               | Принимает колбэк, который вернет промис с текстом модуля в виде строки (забираем код конфига из форм, блоков в Notion и тд) | child: Tuner.Load.remote.callbackReturnString(() ⇒ someFetchingFunctionStringReturned(options: {…})) |
-
-Кроме того, _Tuner.Load.remote_ имеет встроенные интеграции с различными сервисами через _Tuner.Load.remote.providers:_
-
-- notion(key:string, blockUrl:string) - отдаем ключ авторизации(_Tuner.getEnv_ поможет найти env-переменную в окружении или .env файле) и ссылку на блок в Notion, в котором описан модуль конфигурации
-- github(key: string, owner: string, repo: string, filePath: string) - ключ, ник держателя репо, название репо и путь до файла.
-
-## Генерация схемы конфига
-
-Для удобной работы с объектом конфигурации во время разработки рекомендуется сгенерировать тип объекта.
-
-_Tuner.use.generateSchema(**obj**_: ObjectType, _**variableName**_: string, _**filePath**_: string) сформирует файл по пути _**filePath**_ со схемой объекта _**obj**_ и экспортирует тип с названием _**variableName**_, переведя первую букву в заглавный регистр.
-
-```tsx
-const cfg = await Tuner.use.loadConfig();
-Tuner.use.generateSchema(
-  cfg,
-  'config',
-  'config/configSchema.ts',
-);
-```
-
-Файл config/configSchema.ts
-
-```tsx
-import { z } from 'https://deno.land/x/zod/mod.ts';
-
-export const configSchema = z.object({
-  config: z.object({
-    a: z.number(),
-    b: z.number(),
-    c: z.number(),
-    e: z.number(),
-    d: z.number(),
-  }),
-  env: z.object({}),
+const config = await Tuner.use.loadConfig<DevelopCFGType>({
+  configDirPath: './config',
 });
 
-export type Config = z.infer<typeof configSchema>;
-
-//├─ config
-//│  ├─ a
-//│  ├─ b
-//│  ├─ c
-//│  ├─ e
-//│  └─ d
-//└─ env
-//
+console.log(config.data);
+// { a: 300, b: 301, c: 402, e: 201, d: 101 }
 ```
+
+## Опции при загрузке
+
+При вызове loadConfig, передайте объект с опциями, чтобы настроить процесс загрузки конфигураций:
+
+- _configDirName_: Имя директории, где хранятся конфигурационные файлы. **По умолчанию используется config**. Укажите это значение, если у вас другая структура каталогов.
+
+- _configDirPath_: Путь к директории, содержащей конфигурационные файлы. **По умолчанию это текущая рабочая директория (./)**. Используйте эту опцию, если конфигурационные файлы находятся в другом месте.

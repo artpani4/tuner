@@ -14,7 +14,7 @@ const log = new luminous.Logger(loggerOptions);
  */
 const absolutePath = <T extends ITunerConfig>(
   path: string,
-): { fun: () => Promise<T>; args: string } => ({
+): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
       // Get the current working directory
@@ -44,6 +44,7 @@ const absolutePath = <T extends ITunerConfig>(
     }
   },
   args: path,
+  type: 'absolutePath',
 });
 
 /**
@@ -54,15 +55,20 @@ const absolutePath = <T extends ITunerConfig>(
  */
 const configDir = <T extends ITunerConfig>(
   path: string,
-): { fun: () => Promise<T>; args: string } => ({
+  configName?: string,
+): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const configDir = await findDirectoryInCWD('config');
+      const configDir = await findDirectoryInCWD(
+        configName || 'config',
+      );
 
       if (!configDir) {
-        throw new Error('Config directory not found');
+        throw new Error(
+          `Config directory not found (tried to find ${configName})`,
+        );
       }
-
+      console.log(configName, configDir, path);
       const modulePath = 'file://' + resolve(configDir, path);
 
       const module = await import(modulePath);
@@ -78,6 +84,7 @@ const configDir = <T extends ITunerConfig>(
     }
   },
   args: path,
+  type: 'configDir',
 });
 /**
  * Получает конфигурацию из файла в текущей рабочей директории.
