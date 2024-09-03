@@ -1,6 +1,6 @@
 # Tuner
 
-[![deno.land/x/tuner](https://shield.deno.dev/x/tuner)](https://deno.land/x/tuner) [![JSR Score](https://jsr.io/badges/@artpani/tuner/score)](https://jsr.io/@vseplet/reface)
+[![deno.land/x/tuner](https://shield.deno.dev/x/tuner)](https://deno.land/x/tuner) [![JSR Score](https://jsr.io/badges/@artpani/tuner/score)](https://jsr.io/@artpani/tuner)
 
 Tuner - модуль для управления конфигурациями проекта. Данные конфигурации описываются в виде **.ts** файла с экспортируемым объектом, который содержит перечисление _env_ переменных и полей конфига. Конфиги могут образовывать иерархию, наследуясь от родительских и перезаписываясь дочерними.
 
