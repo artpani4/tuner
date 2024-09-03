@@ -17,7 +17,8 @@
   "tasks": {
     "example": "CONFIG=develop deno run --allow-all example/config/main.ts",
     "example2": "CONFIG=dev deno run --allow-all example2/config_ololo/main.ts",
-    "check": "CONFIG=app deno run --allow-all config/checkConfig.ts"
+    "check": "CONFIG=app deno run --allow-all config/checkConfig.ts",
+    "gen": "deno run --allow-all cli/mod.ts"
   },
   "lint": {
     "files": {
@@ -67,6 +68,7 @@
   },
 
   "imports": {
+    "@artpani/tuner": "jsr:@artpani/tuner@^0.4.0",
     "@libs/std": "jsr:@libs/std@^2024.7.24",
     "@std/dotenv": "jsr:@std/dotenv@^0.225.0",
     "@std/fs": "jsr:@std/fs@^1.0.0",
