@@ -17,24 +17,15 @@ const absolutePath = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      // Get the current working directory
       const currentDir = Deno.cwd();
-      // log.inf(`Current working directory: ${currentDir}`);
 
-      // Read the contents of the current directory
       const dirEntries = [];
       for await (const entry of Deno.readDir(currentDir)) {
         dirEntries.push(entry.name);
       }
-      // log.inf(`Directory contents: ${dirEntries.join(', ')}`);
 
-      log.inf(`Attempting to load config from: ${path}`);
-
-      // Import the module
       const module = await import(path);
-      log.inf(
-        `Successfully loaded config from absolute path: ${path}`,
-      );
+
       return module.default as T;
     } catch (error) {
       log.err(
@@ -55,26 +46,13 @@ const absolutePath = <T extends ITunerConfig>(
  */
 const configDir = <T extends ITunerConfig>(
   path: string,
-  configName?: string,
+  configDirPath: string = './config', // Указание пути к директории
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const configDir = await findDirectoryInCWD(
-        configName || 'config',
-      );
-
-      if (!configDir) {
-        throw new Error(
-          `Config directory not found (tried to find ${configName})`,
-        );
-      }
-      console.log(configName, configDir, path);
-      const modulePath = 'file://' + resolve(configDir, path);
-
+      const modulePath = 'file://' + resolve(configDirPath, path);
       const module = await import(modulePath);
-      log.inf(
-        `Successfully loaded config from config directory: ${modulePath}`,
-      );
+
       return module.default as T;
     } catch (error) {
       log.err(
@@ -86,6 +64,7 @@ const configDir = <T extends ITunerConfig>(
   args: path,
   type: 'configDir',
 });
+
 /**
  * Получает конфигурацию из файла в текущей рабочей директории.
  * @param path Относительный путь к файлу с конфигурацией в текущей рабочей директории.
@@ -98,7 +77,7 @@ const cwd = <T extends ITunerConfig>(
     try {
       const modulePath = 'file:///' + resolve('./', path);
       const module = await import(modulePath);
-      log.inf(`Successfully loaded config from CWD: ${path}`);
+
       return module.default as T;
     } catch (error) {
       log.err(`Error loading config from CWD: ${path} - ${error}`);
@@ -121,7 +100,7 @@ export const importFromString = async (
       btoa(code)
     }`;
     const module = await import(base64Code);
-    log.inf(`Successfully imported module from string`);
+
     return module;
   } catch (error) {
     log.err(`Error importing module from string: ${error}`);
@@ -141,7 +120,7 @@ const remoteAsString = <T extends ITunerConfig>(
     try {
       const code = await cb();
       const module = await importFromString(code);
-      log.inf(`Successfully loaded remote config as string`);
+
       return module as T;
     } catch (error) {
       log.err(`Error loading remote config as string: ${error}`);
@@ -162,7 +141,7 @@ const remoteAsModule = <T extends ITunerConfig>(
   fun: async (): Promise<T> => {
     try {
       const module = await cb();
-      log.inf(`Successfully loaded remote config as module`);
+
       return module.default as T;
     } catch (error) {
       log.err(`Error loading remote config as module: ${error}`);
@@ -183,9 +162,7 @@ const remoteByImport = <T extends ITunerConfig>(
   fun: async (): Promise<T> => {
     try {
       const module = await import(source);
-      log.inf(
-        `Successfully loaded remote config by import: ${source}`,
-      );
+
       return module.default as T;
     } catch (error) {
       log.err(
@@ -206,10 +183,10 @@ export const Load = {
     configDir,
     cwd,
   },
-  remote: {
-    import: remoteByImport,
-    callbackReturnModule: remoteAsModule,
-    callbackReturnString: remoteAsString,
-    providers: {},
-  },
+  // remote: {
+  //   import: remoteByImport,
+  //   callbackReturnModule: remoteAsModule,
+  //   callbackReturnString: remoteAsString,
+  //   providers: {},
+  // },
 };

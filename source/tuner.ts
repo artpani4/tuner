@@ -25,72 +25,68 @@ type ConfigList = {
 };
 
 interface LoadConfigOptions {
-  configDirName?: string;
   configDirPath?: string;
   [key: string]: any;
 }
 
 /**
  * Получает значение переменной окружения по указанному имени.
- * Если переменная окружения не задана, то пытается получить значение из файла .env.
+ * Если переменная окружения не задана, то генерирует исключение.
  * @param name Имя переменной окружения.
  * @returns Значение переменной окружения.
- * @throws {MissingConfigNameEnv} Если переменная окружения не задана и отсутствует в файле .env.
+ * @throws {MissingConfigNameEnv} Если переменная окружения не задана.
  */
 export function getEnv(name: string): string {
-  try {
-    const value = Deno.env.get(name);
-    if (!value) {
-      throw new MissingConfigNameEnv(name);
-    }
-    return value;
-  } catch (error) {
-    log.err(`Error getting environment variable ${name}: ${error}`);
-    throw error;
+  const value = Deno.env.get(name);
+  if (value === undefined) {
+    throw new MissingConfigNameEnv(name);
   }
+  return value;
 }
 
 /**
- * Загружает и объединяет конфигурации из нескольких источников, указанных в порядке наследования.
- * @param options Опции для загрузки конфигурации.
+ * Загружает и объединяет конфигурации из указанных источников, учитывая наследование.
+ * @param options Опции для загрузки конфигурации, включая путь к директории конфигурации.
  * @returns Объединенная и заполненная конфигурация.
+ * @throws Error при ошибке загрузки конфигурации.
  */
 export async function loadConfig<T>(
   options?: LoadConfigOptions,
 ): Promise<T> {
   try {
+    log.inf('Starting configuration load process.');
     const configName = getEnv('CONFIG');
-    const configDir = options?.configDirName || 'config';
-    const configDirPath = options?.configDirPath || './';
+    const configDirPath = options?.configDirPath || './config';
     const resolvedPath = 'file:///' + resolve(
       configDirPath,
-      configDir,
       `${configName}.tuner.ts`,
     );
-
-    // log.inf(`Resolved config path: ${resolvedPath}`);
+    log.inf(`Resolved main configuration path: ${resolvedPath}`);
 
     const mainConfig = await Load.local.absolutePath(
       resolvedPath,
-    )
-      .fun();
-    // log.trc(`Путь конфига: file:///${resolvedPath}`);
+    ).fun();
+
+    log.inf('Main configuration loaded successfully.');
+
     const configSequence = await inheritList(
       mainConfig,
       {},
-      configDir,
       configDirPath,
     );
-    // log.dbg(
-    //   `INHERIT LIST: ${JSON.stringify(configSequence, null, 2)}`,
-    // );
+
+    log.inf('Configuration inheritance list created.');
+
     const mergedConfig = mergeSequentialConfigs(configSequence);
+    log.inf('Configurations merged successfully.');
+
     return fillEnv(await mergedConfig) as T;
   } catch (error) {
     log.err(`Error loading configuration: ${error}`);
     throw error;
   }
 }
+
 /**
  * Заполняет значения переменных окружения в конфигурации, если они являются функциями.
  * @param config Конфигурация с функциями в поле env.
@@ -98,6 +94,7 @@ export async function loadConfig<T>(
  */
 function fillEnv(config: ITunerConfig): IFilledTunerConfig {
   try {
+    log.inf('Filling environment variables.');
     const filledEnv: { [key: string]: any } = {};
 
     for (const key in config.env) {
@@ -109,6 +106,7 @@ function fillEnv(config: ITunerConfig): IFilledTunerConfig {
       }
     }
 
+    log.inf('Environment variables filled.');
     return { ...config, env: filledEnv };
   } catch (error) {
     log.err(`Error filling environment variables: ${error}`);
@@ -142,7 +140,7 @@ function mergeRecursive(target: any, source: any): any {
 }
 
 /**
- * Объединяет две конфигурации.
+ * Объединяет две конфигурации, включая данные и переменные окружения.
  * @param parent Родительская конфигурация.
  * @param child Дочерняя конфигурация.
  * @returns Объединенная конфигурация.
@@ -152,11 +150,13 @@ function mergeConfigs(
   child: ITunerConfig,
 ): ITunerConfig {
   try {
+    // log.inf('Merging parent and child configurations.');
     const mergedEnv = { ...parent.env, ...child.env };
     const mergedConfig = mergeRecursive(
       parent.data || {},
       child.data,
     );
+    // log.inf('Parent and child configurations merged.');
     return { env: mergedEnv, data: mergedConfig };
   } catch (error) {
     log.err(
@@ -167,78 +167,67 @@ function mergeConfigs(
 }
 
 /**
- * Рекурсивно получает последовательность конфигураций от дочернего к родительскому.
+ * Получает последовательность конфигураций от дочернего к родительскому, учитывая наследование.
  * @param curConfig Текущая конфигурация.
  * @param store Массив, в который сохраняются полученные конфигурации.
- * @param configDirName Имя директории конфигурации.
  * @param configDirPath Путь к директории конфигурации.
  * @returns Массив с последовательностью конфигураций от дочернего к родительскому.
  */
-
 async function inheritList(
   curConfig: ITunerConfig,
   store: ConfigList = {},
-  configDirName: string = 'config',
-  configDirPath: string = './',
+  configDirPath: string = './config',
 ): Promise<ConfigList> {
   try {
+    log.inf('Creating configuration inheritance list.');
     const resolvedPath = resolve(
       configDirPath,
-      configDirName,
       `${getEnv('CONFIG')}.tuner.ts`,
     );
-
-    log.inf(`Resolved initial config path: ${resolvedPath}`);
 
     store[0] = {
       config: curConfig,
       delivery: async () => {
-        log.inf(`Loading main config from: ${resolvedPath}`);
         const mainConfig = await Load.local.absolutePath(
           `file:///${resolvedPath}`,
         ).fun();
-        log.inf(`Main config loaded successfully`);
         return mainConfig;
       },
     };
 
     let i = 0;
 
-    // Загружаем дочерние конфигурации
     while (curConfig.child) {
-      log.inf(`Found child config at index: ${i}`);
+      // log.inf(`Found child config at index: ${i}`);
 
       const childLoader = curConfig.child;
       let childConfig: ITunerConfig;
 
       if (childLoader.type === 'configDir') {
-        log.inf(`Using configDir loader for child config.`);
         childConfig = await Load.local.configDir(
           childLoader.args,
-          configDirName,
+          configDirPath,
         ).fun();
+        log.inf(
+          `Loaded child config from config directory: ${configDirPath}/${childLoader.args}`,
+        );
       } else if (childLoader.type === 'absolutePath') {
-        log.inf(`Using absolutePath loader for child config.`);
         childConfig = await Load.local.absolutePath(childLoader.args)
           .fun();
+        log.inf(
+          `Loaded child config from absolute path: ${childLoader.args}`,
+        );
       } else {
-        log.inf(`Using default loader for child config.`);
         childConfig = await childLoader.fun();
+        log.inf('Loaded child config using custom loader function.');
       }
-
-      log.inf(`Child config loaded successfully`);
 
       store[--i] = {
         config: childConfig,
         delivery: () => {
-          log.inf(
-            `Loading child config from path: ${
-              childConfig.child?.args || ''
-            }`,
-          );
           return Load.local.configDir(
             childConfig.child?.args || '',
-            configDirName,
+            configDirPath,
           ).fun();
         },
       };
@@ -246,47 +235,41 @@ async function inheritList(
       curConfig = childConfig;
     }
 
-    log.inf(`All child configs loaded. Moving to parent configs.`);
+    log.inf('All child configs loaded successfully.');
 
-    // Сбрасываем индекс и загружаем родительские конфигурации
     i = 0;
     curConfig = store[0].config;
 
     while (curConfig.parent) {
-      log.inf(`Found parent config at index: ${i}`);
-
       const parentLoader = curConfig.parent;
       let parentConfig: ITunerConfig;
 
       if (parentLoader.type === 'configDir') {
-        log.inf(`Using configDir loader for parent config.`);
         parentConfig = await Load.local.configDir(
           parentLoader.args,
-          configDirName,
+          configDirPath,
         ).fun();
+        log.inf(
+          `Loaded parent config from directory:  ${configDirPath}/${parentLoader.args}`,
+        );
       } else if (parentLoader.type === 'absolutePath') {
-        log.inf(`Using absolutePath loader for parent config.`);
         parentConfig = await Load.local.absolutePath(
           parentLoader.args,
         ).fun();
+        log.inf(
+          `Loaded parent config from absolute path: ${parentLoader.args}`,
+        );
       } else {
-        log.inf(`Using default loader for parent config.`);
         parentConfig = await parentLoader.fun();
+        log.inf('Loaded parent config using custom loader function.');
       }
-
-      log.inf(`Parent config loaded successfully`);
 
       store[++i] = {
         config: parentConfig,
         delivery: () => {
-          log.inf(
-            `Loading parent config from path: ${
-              parentConfig.parent?.args || ''
-            }`,
-          );
           return Load.local.configDir(
             parentConfig.parent?.args || '',
-            configDirName,
+            configDirPath,
           ).fun();
         },
       };
@@ -294,7 +277,7 @@ async function inheritList(
       curConfig = parentConfig;
     }
 
-    log.inf(`All parent configs loaded successfully.`);
+    log.inf('All parent configs loaded successfully.');
 
     return store;
   } catch (error) {
@@ -304,7 +287,7 @@ async function inheritList(
 }
 
 /**
- * Объединяет последовательность конфигураций по порядку от меньшего к большему.
+ * Объединяет последовательность конфигураций по порядку от меньшего к большему, начиная с дочерних к родительским.
  * @param configs Массив с последовательностью конфигураций.
  * @returns Объединенная конфигурация.
  */
@@ -312,15 +295,11 @@ async function mergeSequentialConfigs(
   configs: ConfigList,
 ): Promise<ITunerConfig> {
   try {
+    log.inf('Merging sequential configurations.');
     let mergedConfig: ITunerConfig | null = null;
     const sortedKeys = Object.keys(configs).sort((a, b) => +b - +a);
     for (const key of sortedKeys) {
       const currentConfig = configs[Number(key)].config;
-      // log.inf(
-      //   `LOOKING AT CONFIG: ${
-      //     JSON.stringify(currentConfig, null, 2)
-      //   }`,
-      // );
       if (mergedConfig === null) {
         mergedConfig = currentConfig;
       } else {
@@ -328,6 +307,7 @@ async function mergeSequentialConfigs(
       }
     }
 
+    log.inf('Sequential configurations merged successfully.');
     return mergedConfig as ITunerConfig;
   } catch (error) {
     log.err(`Error merging sequential configurations: ${error}`);
