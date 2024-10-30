@@ -232,8 +232,6 @@ async function inheritList(
       curConfig = childConfig;
     }
 
-
-
     i = 0;
     curConfig = store[0].config;
 
