@@ -54,20 +54,20 @@ export async function loadConfig<T>(
   options?: LoadConfigOptions,
 ): Promise<T> {
   try {
-    log.inf('Starting configuration load process.');
+
     const configName = getEnv('CONFIG');
     const configDirPath = options?.configDirPath || './config';
     const resolvedPath = 'file:///' + resolve(
       configDirPath,
       `${configName}.tuner.ts`,
     );
-    log.inf(`Resolved main configuration path: ${resolvedPath}`);
+
 
     const mainConfig = await Load.local.absolutePath(
       resolvedPath,
     ).fun();
 
-    log.inf('Main configuration loaded successfully.');
+
 
     const configSequence = await inheritList(
       mainConfig,
@@ -75,10 +75,10 @@ export async function loadConfig<T>(
       configDirPath,
     );
 
-    log.inf('Configuration inheritance list created.');
+
 
     const mergedConfig = mergeSequentialConfigs(configSequence);
-    log.inf('Configurations merged successfully.');
+
 
     return fillEnv(await mergedConfig) as T;
   } catch (error) {
@@ -94,7 +94,7 @@ export async function loadConfig<T>(
  */
 function fillEnv(config: ITunerConfig): IFilledTunerConfig {
   try {
-    log.inf('Filling environment variables.');
+
     const filledEnv: { [key: string]: any } = {};
 
     for (const key in config.env) {
@@ -106,7 +106,7 @@ function fillEnv(config: ITunerConfig): IFilledTunerConfig {
       }
     }
 
-    log.inf('Environment variables filled.');
+
     return { ...config, env: filledEnv };
   } catch (error) {
     log.err(`Error filling environment variables: ${error}`);
@@ -150,13 +150,13 @@ function mergeConfigs(
   child: ITunerConfig,
 ): ITunerConfig {
   try {
-    // log.inf('Merging parent and child configurations.');
+
     const mergedEnv = { ...parent.env, ...child.env };
     const mergedConfig = mergeRecursive(
       parent.data || {},
       child.data,
     );
-    // log.inf('Parent and child configurations merged.');
+
     return { env: mergedEnv, data: mergedConfig };
   } catch (error) {
     log.err(
@@ -179,7 +179,7 @@ async function inheritList(
   configDirPath: string = './config',
 ): Promise<ConfigList> {
   try {
-    log.inf('Creating configuration inheritance list.');
+
     const resolvedPath = resolve(
       configDirPath,
       `${getEnv('CONFIG')}.tuner.ts`,
@@ -198,7 +198,7 @@ async function inheritList(
     let i = 0;
 
     while (curConfig.child) {
-      // log.inf(`Found child config at index: ${i}`);
+
 
       const childLoader = curConfig.child;
       let childConfig: ITunerConfig;
@@ -208,18 +208,15 @@ async function inheritList(
           childLoader.args,
           configDirPath,
         ).fun();
-        log.inf(
-          `Loaded child config from config directory: ${configDirPath}/${childLoader.args}`,
-        );
+
+        
       } else if (childLoader.type === 'absolutePath') {
         childConfig = await Load.local.absolutePath(childLoader.args)
           .fun();
-        log.inf(
-          `Loaded child config from absolute path: ${childLoader.args}`,
-        );
+
       } else {
         childConfig = await childLoader.fun();
-        log.inf('Loaded child config using custom loader function.');
+
       }
 
       store[--i] = {
@@ -235,7 +232,7 @@ async function inheritList(
       curConfig = childConfig;
     }
 
-    log.inf('All child configs loaded successfully.');
+
 
     i = 0;
     curConfig = store[0].config;
@@ -249,19 +246,17 @@ async function inheritList(
           parentLoader.args,
           configDirPath,
         ).fun();
-        log.inf(
-          `Loaded parent config from directory:  ${configDirPath}/${parentLoader.args}`,
-        );
+
+       
       } else if (parentLoader.type === 'absolutePath') {
         parentConfig = await Load.local.absolutePath(
           parentLoader.args,
         ).fun();
-        log.inf(
-          `Loaded parent config from absolute path: ${parentLoader.args}`,
-        );
+
+     
       } else {
         parentConfig = await parentLoader.fun();
-        log.inf('Loaded parent config using custom loader function.');
+
       }
 
       store[++i] = {
@@ -277,7 +272,7 @@ async function inheritList(
       curConfig = parentConfig;
     }
 
-    log.inf('All parent configs loaded successfully.');
+
 
     return store;
   } catch (error) {
@@ -295,7 +290,7 @@ async function mergeSequentialConfigs(
   configs: ConfigList,
 ): Promise<ITunerConfig> {
   try {
-    log.inf('Merging sequential configurations.');
+
     let mergedConfig: ITunerConfig | null = null;
     const sortedKeys = Object.keys(configs).sort((a, b) => +b - +a);
     for (const key of sortedKeys) {
@@ -307,7 +302,7 @@ async function mergeSequentialConfigs(
       }
     }
 
-    log.inf('Sequential configurations merged successfully.');
+
     return mergedConfig as ITunerConfig;
   } catch (error) {
     log.err(`Error merging sequential configurations: ${error}`);
