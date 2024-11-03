@@ -52,23 +52,18 @@ export async function loadConfig<T>(options: LoadConfigOptions = {}): Promise<T>
     const configDirPath = options.configDirPath || './config';
     const configName = options.configName || 'base';
     
-    // Проверяем, если первый символ в absolutePathPrefix не '/', добавляем его
-    const absolutePathPrefix = options.absolutePathPrefix
-      ? options.absolutePathPrefix.startsWith('/')
-        ? options.absolutePathPrefix
-        : `/${options.absolutePathPrefix}`
-      : '';
+  
 
     // Используем absolutePathPrefix, если он задан, относительно текущей директории
-    const resolvedPath = absolutePathPrefix
-      ? resolve( absolutePathPrefix, configDirPath, `${configName}.tuner.ts`)
+    const resolvedPath = options.absolutePathPrefix
+      ? resolve( options.absolutePathPrefix, configDirPath, `${configName}.tuner.ts`)
       : resolve(configDirPath, `${configName}.tuner.ts`);
     
 
     
     const mainConfig = await Load.local.absolutePath(resolvedPath).fun();
 
-    const configSequence = await inheritList(mainConfig, {}, configDirPath, absolutePathPrefix);
+    const configSequence = await inheritList(mainConfig, {}, configDirPath, options.absolutePathPrefix);
 
 
     const mergedConfig = await mergeSequentialConfigs(configSequence);
