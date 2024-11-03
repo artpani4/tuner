@@ -20,5 +20,5 @@ export function resolvePath(path: string, absolutePathPrefix?: string): string {
       return `file:///${resolve(absolutePathPrefix, path)}`;
     }
   }
-  return resolve(path);
+  return `file:///${resolve("./", path)}`;
 }
