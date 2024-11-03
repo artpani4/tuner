@@ -1,6 +1,6 @@
 // source/loaders.ts
 
-import luminous from '@vseplet/luminous';
+import { luminous } from './deps.ts';
 import { ITunerConfig } from './type.ts';
 import { resolvePath } from './utils/pathResolver.ts';
 

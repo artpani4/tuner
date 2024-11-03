@@ -1,4 +1,5 @@
-import { walk } from '@std/fs';
+import { walk } from '../deps.ts';
+
 
 /**
  * Поиск директории с указанным именем в заданном пути.

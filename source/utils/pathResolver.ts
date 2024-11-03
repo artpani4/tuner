@@ -1,6 +1,8 @@
 // source/utils/pathResolver.ts
 
-import { resolve } from '@std/path';
+import { resolve } from '../deps.ts';
+
+
 
 /**
  * Функция для получения полного пути, учитывая абсолютный префикс.

@@ -11,7 +11,8 @@ import { Load } from './loaders.ts';
 
 
 import { resolvePath } from './utils/pathResolver.ts';
-import luminous from '@vseplet/luminous';
+import { luminous } from './deps.ts';
+
 
 const loggerOptions = new luminous.OptionsBuilder().setName('TUNER').build();
 const log = new luminous.Logger(loggerOptions);
