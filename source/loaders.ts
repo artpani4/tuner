@@ -2,7 +2,7 @@
 
 import luminous from '@vseplet/luminous';
 import { ITunerConfig } from './type.ts';
-import { resolve } from '@std/path';
+import { resolvePath } from './utils/pathResolver.ts';
 
 const loggerOptions = new luminous.OptionsBuilder().setName('LOADERS').build();
 const log = new luminous.Logger(loggerOptions);
@@ -16,9 +16,9 @@ const absolutePath = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const fullPath = absolutePathPrefix ? resolve(absolutePathPrefix, path) : path;
-      console.log(fullPath)
-      const module = await import(`${fullPath}`);
+      const fullPath = resolvePath(path, absolutePathPrefix);
+      console.log(fullPath);
+      const module = await import(fullPath);
       return module.default as T;
     } catch (error) {
       log.err(`Error loading config from absolute path: ${path} - ${error}`);
@@ -39,10 +39,8 @@ const configDir = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = absolutePathPrefix
-        ? resolve(absolutePathPrefix, configDirPath, path)
-        : resolve(configDirPath, path);
-      console.log(modulePath)
+      const modulePath = resolvePath(`${configDirPath}/${path}`, absolutePathPrefix);
+      console.log(modulePath);
       const module = await import(modulePath);
       return module.default as T;
     } catch (error) {
@@ -63,7 +61,7 @@ const cwd = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = absolutePathPrefix ? resolve(absolutePathPrefix, './', path) : resolve('./', path);
+      const modulePath = resolvePath(`./${path}`, absolutePathPrefix);
       const module = await import(`file://${modulePath}`);
       return module.default as T;
     } catch (error) {

@@ -9,7 +9,8 @@ import {
 import { MissingConfigNameEnv } from './errors.ts';
 import { Load } from './loaders.ts';
 import luminous from '@vseplet/luminous';
-import { resolve } from 'jsr:@std/path@^1.0.2/resolve';
+
+import { resolvePath } from './utils/pathResolver.ts';
 
 const loggerOptions = new luminous.OptionsBuilder().setName('TUNER').build();
 const log = new luminous.Logger(loggerOptions);
@@ -47,27 +48,23 @@ export function getEnv(name: string): string {
  * Загружает и объединяет конфигурации, учитывая наследование.
  */
 
+
 export async function loadConfig<T>(options: LoadConfigOptions = {}): Promise<T> {
   try {
     const configDirPath = options.configDirPath || './config';
     const configName = options.configName || 'base';
-    
-  
 
-    // Используем absolutePathPrefix, если он задан, относительно текущей директории
-    const resolvedPath = options.absolutePathPrefix
-      ? resolve( options.absolutePathPrefix, configDirPath, `${configName}.tuner.ts`)
-      : resolve(configDirPath, `${configName}.tuner.ts`);
-    
+    const resolvedPath = resolvePath(`${configDirPath}/${configName}.tuner.ts`, options.absolutePathPrefix);
 
-    
-    const mainConfig = await Load.local.absolutePath(resolvedPath).fun();
+    log.inf(`Загрузка основной конфигурации из пути: ${resolvedPath}`);
+    const mainConfig = (await import(resolvedPath)).default as ITunerConfig
+    log.inf(`Основная конфигурация загружена: ${JSON.stringify(mainConfig)}`);
 
     const configSequence = await inheritList(mainConfig, {}, configDirPath, options.absolutePathPrefix);
-
+    log.inf(`Последовательность конфигураций: ${JSON.stringify(configSequence, null, 2)}`);
 
     const mergedConfig = await mergeSequentialConfigs(configSequence);
-
+    log.inf(`Объединенная конфигурация: ${JSON.stringify(mergedConfig)}`);
 
     return fillEnv(mergedConfig) as T;
   } catch (error) {
@@ -75,6 +72,7 @@ export async function loadConfig<T>(options: LoadConfigOptions = {}): Promise<T>
     throw error;
   }
 }
+
 
 
 /**
@@ -146,7 +144,6 @@ async function inheritList(
     while (curConfig.child) {
       const childLoader = curConfig.child;
       let childConfig: ITunerConfig;
-
       if (childLoader.type === 'configDir') {
         childConfig = await Load.local.configDir(childLoader.args, configDirPath, absolutePathPrefix).fun();
       } else if (childLoader.type === 'absolutePath') {
@@ -159,7 +156,6 @@ async function inheritList(
         config: childConfig,
         delivery: () => Load.local.configDir(childConfig.child?.args || '', configDirPath, absolutePathPrefix).fun(),
       };
-
       curConfig = childConfig;
     }
 
