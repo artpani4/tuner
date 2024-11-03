@@ -17,6 +17,7 @@ const absolutePath = <T extends ITunerConfig>(
   fun: async (): Promise<T> => {
     try {
       const fullPath = absolutePathPrefix ? resolve(absolutePathPrefix, path) : path;
+      console.log(fullPath)
       const module = await import(`${fullPath}`);
       return module.default as T;
     } catch (error) {
