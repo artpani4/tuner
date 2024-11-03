@@ -3,7 +3,7 @@ import Tuner from '../../mod.ts';
 const baseCfg = Tuner.tune({
   env: {
     //TODO сделать дефолтную ошибку отсуствия env-переменной в тюнере
-    CONFIG: Tuner.Env.getString.orExit(),
+    // CONFIG: Tuner.Env.getString.orExit(),
     // XATA_API_KEY: Tuner.Env.getString.orThrow(
     //   new Error('No XATA API KEY!'),
     // ),

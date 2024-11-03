@@ -4,4 +4,4 @@ import { DevelopCfgType } from './develop.tuner.ts';
 const c = await Tuner.use.loadConfig<DevelopCfgType>({
   configDirPath: 'example/config',
 });
-console.log(c.data);
+console.log(c);
