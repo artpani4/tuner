@@ -1,4 +1,4 @@
-import luminous from '@vseplet/luminous';
+import luminous from 'jsr:@vseplet/luminous@1.0.6';
 
 import { getEnv } from '../tuner.ts';
 import { CriticalError, MissingConfigNameEnv } from '../errors.ts';
