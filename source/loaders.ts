@@ -41,7 +41,8 @@ const configDir = <T extends ITunerConfig>(
       const modulePath = absolutePathPrefix
         ? resolve(absolutePathPrefix, configDirPath, path)
         : resolve(configDirPath, path);
-      const module = await import(`${modulePath}`);
+      console.log(modulePath)
+      const module = await import(modulePath);
       return module.default as T;
     } catch (error) {
       log.err(`Error loading config from config directory: ${path} - ${error}`);
