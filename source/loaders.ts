@@ -17,7 +17,6 @@ const absolutePath = <T extends ITunerConfig>(
   fun: async (): Promise<T> => {
     try {
       const fullPath = resolvePath(path, absolutePathPrefix);
-      console.log(fullPath);
       const module = await import(fullPath);
       return module.default as T;
     } catch (error) {
@@ -40,7 +39,7 @@ const configDir = <T extends ITunerConfig>(
   fun: async (): Promise<T> => {
     try {
       const modulePath = resolvePath(`${configDirPath}/${path}`, absolutePathPrefix);
-      console.log(modulePath);
+
       const module = await import(modulePath);
       return module.default as T;
     } catch (error) {

@@ -58,15 +58,15 @@ export async function loadConfig<T>(options: LoadConfigOptions = {}): Promise<T>
 
     const resolvedPath = resolvePath(`${configDirPath}/${configName}.tuner.ts`, options.absolutePathPrefix);
 
-    log.inf(`Загрузка основной конфигурации из пути: ${resolvedPath}`);
+
     const mainConfig = (await import(resolvedPath)).default as ITunerConfig
-    log.inf(`Основная конфигурация загружена: ${JSON.stringify(mainConfig)}`);
+
 
     const configSequence = await inheritList(mainConfig, {}, configDirPath, options.absolutePathPrefix);
-    log.inf(`Последовательность конфигураций: ${JSON.stringify(configSequence, null, 2)}`);
+
 
     const mergedConfig = await mergeSequentialConfigs(configSequence);
-    log.inf(`Объединенная конфигурация: ${JSON.stringify(mergedConfig)}`);
+
 
     return fillEnv(mergedConfig) as T;
   } catch (error) {
