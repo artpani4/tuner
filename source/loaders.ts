@@ -2,6 +2,7 @@
 
 import { luminous } from './deps.ts';
 import { ITunerConfig } from './type.ts';
+import { generateRandomString } from './utils/pathHelper.ts';
 import { resolvePath } from './utils/pathResolver.ts';
 
 const loggerOptions = new luminous.OptionsBuilder().setName('LOADERS').build();
@@ -16,7 +17,7 @@ const absolutePath = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const fullPath = resolvePath(path, absolutePathPrefix);
+      const fullPath = `${resolvePath(path, absolutePathPrefix)}?cache_bust=${generateRandomString()}`;
       const module = await import(fullPath);
       return module.default as T;
     } catch (error) {
@@ -38,7 +39,7 @@ const configDir = <T extends ITunerConfig>(
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = resolvePath(`${configDirPath}/${path}`, absolutePathPrefix);
+      const modulePath = `${resolvePath(`${configDirPath}/${path}`, absolutePathPrefix)}?cache_bust=${generateRandomString()}`;
 
       const module = await import(modulePath);
       return module.default as T;

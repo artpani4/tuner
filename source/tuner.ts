@@ -12,6 +12,7 @@ import { Load } from './loaders.ts';
 
 import { resolvePath } from './utils/pathResolver.ts';
 import { luminous } from './deps.ts';
+import { generateRandomString } from './utils/pathHelper.ts';
 
 
 const loggerOptions = new luminous.OptionsBuilder().setName('TUNER').build();
@@ -46,6 +47,8 @@ export function getEnv(name: string): string {
   return value;
 }
 
+
+
 /**
  * Загружает и объединяет конфигурации, учитывая наследование.
  */
@@ -56,7 +59,7 @@ export async function loadConfig<T>(options: LoadConfigOptions = {}): Promise<T>
     const configDirPath = options.configDirPath || './config';
     const configName = options.configName || 'base';
 
-    const resolvedPath = resolvePath(`${configDirPath}/${configName}.tuner.ts`, options.absolutePathPrefix);
+    const resolvedPath = `${resolvePath(`${configDirPath}/${configName}.tuner.ts`, options.absolutePathPrefix)}?cache_bust=${generateRandomString()}`;
 
 
     const mainConfig = (await import(resolvedPath)).default as ITunerConfig

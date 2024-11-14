@@ -33,3 +33,13 @@ export async function findDirectoryInCWD(
 ): Promise<string | null> {
   return findDirectory(directoryPath, name);
 }
+
+
+export function generateRandomString(length: number = 20): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
