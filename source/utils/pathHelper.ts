@@ -1,6 +1,5 @@
 import { walk } from '../deps.ts';
 
-
 /**
  * Поиск директории с указанным именем в заданном пути.
  * @param directoryPath Путь к директории, в которой будет выполняться поиск.
@@ -34,12 +33,14 @@ export async function findDirectoryInCWD(
   return findDirectory(directoryPath, name);
 }
 
-
 export function generateRandomString(length: number = 20): string {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    result += characters.charAt(
+      Math.floor(Math.random() * characters.length),
+    );
   }
   return result;
 }

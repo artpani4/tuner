@@ -5,7 +5,8 @@ import { ITunerConfig } from './type.ts';
 import { generateRandomString } from './utils/pathHelper.ts';
 import { resolvePath } from './utils/pathResolver.ts';
 
-const loggerOptions = new luminous.OptionsBuilder().setName('LOADERS').build();
+const loggerOptions = new luminous.OptionsBuilder().setName('LOADERS')
+  .build();
 const log = new luminous.Logger(loggerOptions);
 
 /**
@@ -14,14 +15,17 @@ const log = new luminous.Logger(loggerOptions);
 const absolutePath = <T extends ITunerConfig>(
   path: string,
   absolutePathPrefix?: string,
+  addSalt: boolean = false,
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const fullPath = `${resolvePath(path, absolutePathPrefix)}?cache_bust=${generateRandomString()}`;
+      const fullPath = resolvePath(path, absolutePathPrefix, addSalt);
       const module = await import(fullPath);
       return module.default as T;
     } catch (error) {
-      log.err(`Error loading config from absolute path: ${path} - ${error}`);
+      log.err(
+        `Error loading config from absolute path: ${path} - ${error}`,
+      );
       throw error;
     }
   },
@@ -29,22 +33,25 @@ const absolutePath = <T extends ITunerConfig>(
   type: 'absolutePath',
 });
 
-/**
- * Получает конфигурацию из файла в директории config.
- */
 const configDir = <T extends ITunerConfig>(
   path: string,
   configDirPath: string = './config',
   absolutePathPrefix?: string,
+  addSalt: boolean = false,
 ): { fun: () => Promise<T>; args: string; type: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = `${resolvePath(`${configDirPath}/${path}`, absolutePathPrefix)}?cache_bust=${generateRandomString()}`;
-
+      const modulePath = resolvePath(
+        `${configDirPath}/${path}`,
+        absolutePathPrefix,
+        addSalt,
+      );
       const module = await import(modulePath);
       return module.default as T;
     } catch (error) {
-      log.err(`Error loading config from config directory: ${path} - ${error}`);
+      log.err(
+        `Error loading config from config directory: ${path} - ${error}`,
+      );
       throw error;
     }
   },
@@ -52,16 +59,18 @@ const configDir = <T extends ITunerConfig>(
   type: 'configDir',
 });
 
-/**
- * Получает конфигурацию из файла в текущей рабочей директории.
- */
 const cwd = <T extends ITunerConfig>(
   path: string,
   absolutePathPrefix?: string,
+  addSalt: boolean = false,
 ): { fun: () => Promise<T>; args: string } => ({
   fun: async (): Promise<T> => {
     try {
-      const modulePath = resolvePath(`./${path}`, absolutePathPrefix);
+      const modulePath = resolvePath(
+        `./${path}`,
+        absolutePathPrefix,
+        addSalt,
+      );
       const module = await import(`file://${modulePath}`);
       return module.default as T;
     } catch (error) {
