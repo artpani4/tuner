@@ -65,9 +65,6 @@ export async function loadConfig<T>(
       addSalt,
     );
 
-    // log.inf(
-    //   `Loading main configuration from path: ${resolvedPath}`,
-    // );
     const mainConfig = (await import(resolvedPath))
       .default as ITunerConfig;
 

@@ -21,9 +21,9 @@ const getStringOrDefault = (
       return getEnv(envValue);
     } catch (e: unknown) {
       if (e instanceof MissingConfigNameEnv) {
-        log.wrn(
-          `Environment variable ${envValue} is missing. Using default value: ${value}`,
-        );
+        // log.wrn(
+        //   `Environment variable ${envValue} is missing. Using default value: ${value}`,
+        // );
         return value;
       }
       log.err(
@@ -47,9 +47,9 @@ const getNumberOrDefault = (
       return Number(getEnv(envValue));
     } catch (e: unknown) {
       if (e instanceof MissingConfigNameEnv) {
-        log.wrn(
-          `Environment variable ${envValue} is missing. Using default value: ${value}`,
-        );
+        // log.wrn(
+        //   `Environment variable ${envValue} is missing. Using default value: ${value}`,
+        // );
         return value;
       }
       log.err(
@@ -74,9 +74,9 @@ const getBooleanOrDefault = (
         getEnv(envValue) === '1';
     } catch (e: unknown) {
       if (e instanceof MissingConfigNameEnv) {
-        log.wrn(
-          `Environment variable ${envValue} is missing. Using default value: ${value}`,
-        );
+        // log.wrn(
+        //   `Environment variable ${envValue} is missing. Using default value: ${value}`,
+        // );
         return value;
       }
       log.err(
