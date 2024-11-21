@@ -1,5 +1,3 @@
-// source/tuner.ts
-
 import {
   CombinedConfigType,
   DeepExpand,
@@ -28,7 +26,7 @@ type ConfigList = {
 };
 
 /**
- * Опции для загрузки конфигурации.
+ * Options for loading the configuration.
  */
 interface LoadConfigOptions {
   configDirPath?: string;
@@ -38,12 +36,12 @@ interface LoadConfigOptions {
 }
 
 /**
- * Получает значение переменной окружения по указанному имени.
+ * Gets the value of an environment variable by name.
  */
 export function getEnv(name: string): string {
   const value = Deno.env.get(name);
   if (value === undefined) {
-    log.err(`Переменная окружения ${name} не задана`);
+    log.err(`Environment variable not found: ${name}`);
     throw new MissingConfigNameEnv(name);
   }
 
@@ -51,9 +49,8 @@ export function getEnv(name: string): string {
 }
 
 /**
- * Загружает и объединяет конфигурации, учитывая наследование.
+ * Loads and merges configurations, taking inheritance into account.
  */
-
 export async function loadConfig<T>(
   options: LoadConfigOptions = {},
 ): Promise<T> {
@@ -68,9 +65,9 @@ export async function loadConfig<T>(
       addSalt,
     );
 
-    log.inf(
-      `Загрузка основной конфигурации из пути: ${resolvedPath}`,
-    );
+    // log.inf(
+    //   `Loading main configuration from path: ${resolvedPath}`,
+    // );
     const mainConfig = (await import(resolvedPath))
       .default as ITunerConfig;
 
@@ -86,13 +83,13 @@ export async function loadConfig<T>(
 
     return fillEnv(mergedConfig) as T;
   } catch (error) {
-    log.err(`Ошибка загрузки конфигурации: ${error}`);
+    log.err(`Configuration loading error: ${error}`);
     throw error;
   }
 }
 
 /**
- * Заполняет значения переменных окружения в конфигурации.
+ * Fills environment variables into the configuration.
  */
 function fillEnv(config: ITunerConfig): IFilledTunerConfig {
   try {
@@ -106,13 +103,13 @@ function fillEnv(config: ITunerConfig): IFilledTunerConfig {
 
     return { ...config, env: filledEnv };
   } catch (error) {
-    log.err(`Ошибка заполнения переменных окружения: ${error}`);
+    log.err(`Error filling environment variables: ${error}`);
     throw error;
   }
 }
 
 /**
- * Рекурсивно объединяет два объекта конфигурации.
+ * Recursively merges two configuration objects.
  */
 function mergeRecursive(target: any, source: any): any {
   try {
@@ -128,13 +125,13 @@ function mergeRecursive(target: any, source: any): any {
     }
     return target;
   } catch (error) {
-    log.err(`Ошибка объединения конфигураций: ${error}`);
+    log.err(`Configuration merge error: ${error}`);
     throw error;
   }
 }
 
 /**
- * Объединяет две конфигурации, включая данные и переменные окружения.
+ * Merges two configurations, including data and environment variables.
  */
 function mergeConfigs(
   parent: ITunerConfig,
@@ -149,13 +146,13 @@ function mergeConfigs(
 
     return { env: mergedEnv, data: mergedData };
   } catch (error) {
-    log.err(`Ошибка объединения конфигураций: ${error}`);
+    log.err(`Configuration merge error: ${error}`);
     throw error;
   }
 }
 
 /**
- * Получает последовательность конфигураций от дочернего к родительскому.
+ * Gets the sequence of configurations from child to parent.
  */
 async function inheritList(
   curConfig: ITunerConfig,
@@ -241,13 +238,13 @@ async function inheritList(
 
     return store;
   } catch (error) {
-    log.err(`Ошибка наследования конфигурации: ${error}`);
+    log.err(`Configuration inheritance error: ${error}`);
     throw error;
   }
 }
 
 /**
- * Объединяет последовательность конфигураций от дочерней к родительской.
+ * Merges a sequence of configurations from child to parent.
  */
 async function mergeSequentialConfigs(
   configs: ConfigList,
@@ -266,7 +263,7 @@ async function mergeSequentialConfigs(
     return mergedConfig as ITunerConfig;
   } catch (error) {
     log.err(
-      `Ошибка объединения последовательных конфигураций: ${error}`,
+      `Error merging sequential configurations: ${error}`,
     );
     throw error;
   }
